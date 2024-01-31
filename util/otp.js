@@ -1,5 +1,6 @@
 const Twilio = require('twilio');
 const accountSid = process.env.TWILIO_ACCOUNT_SID
+console.log(accountSid)
 const authToken = process.env.TWILIO_AUTH_TOKEN
 const twilioPhoneNumber = process.env.TWILIO_MOBILE_NUMBER
 const client = new Twilio(accountSid, authToken);
