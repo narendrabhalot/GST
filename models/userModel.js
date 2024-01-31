@@ -53,7 +53,6 @@ const registrationSchema = new mongoose.Schema({
         },
     },
 
-
 }, { "timestamps": true });
 
 const Registration = mongoose.model('UserRegistration', registrationSchema);
