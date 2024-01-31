@@ -27,6 +27,7 @@ const sendOTP = async (req, res) => {
             return res.status(404).json({ status: false, message: 'User not found' });
         }
         const otp = generateOTP();
+        console.log(otp)
         user.otp = { value: otp, Date: new Date() };
         await user.save();
 
