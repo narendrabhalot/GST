@@ -22,7 +22,7 @@ const sendOTP = async (req, res) => {
             })
         }
         let user = await UserModel.findOne({ mobileNumber: mobileNumber })
-        console.log(user)
+        // console.log(user)
         if (!user) {
             return res.status(404).json({ status: false, message: 'User not found' });
         }
@@ -30,6 +30,7 @@ const sendOTP = async (req, res) => {
         console.log(otp)
         user.otp = { value: otp, Date: new Date() };
         await user.save();
+        console.log(user)
 
         await sendSMS(mobileNumber, otp);
 
