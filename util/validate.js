@@ -71,8 +71,7 @@ const userBillValidation = (data) => {
         totalAmount: Joi.string().trim().required().messages({
             'any.required': "Total amount is required",
         }),
-        gstRate: Joi.string().trim().valid("0", "5", "12", "18", "28").required().messages({
-            'any.required': "GST rate is required",
+        gstRate: Joi.string().trim().valid("0", "5", "12", "18", "28").messages({
             'any.only': 'Invalid GST rate. Must be 0,5,12,18,28 ',
         }),
         grandTotal: Joi.string().trim().required().messages({

@@ -2,7 +2,8 @@ const userModel = require('../models/userModel')
 const userBillModel = require('../models/userBillModel')
 const { userBillValidation, isValidObjectId, isValidRequestBody } = require("../util/validate")
 const createUserBill = async (req, res) => {
-    const { invoiceNo,invoiceDate, sellerGSTIN, totalAmount, gstRate, grandTotal } = req.body
+    let { invoiceNo, invoiceDate, sellerGSTIN, totalAmount, gstRate, grandTotal } = req.body
+    
     let userId, SGST, CGST, IGST;
     userId = req.params.id
     if (!isValidObjectId(userId)) {
@@ -23,33 +24,39 @@ const createUserBill = async (req, res) => {
             msg: value.error.message
         })
     }
-    const validGrandAmount = Number(totalAmount) + (totalAmount * (gstRate / 100))
-    console.log(validGrandAmount)
-    if (validGrandAmount !== Number(grandTotal)) {
-        return res.status(400).send({ status: false, msg: "Incorrect grand amount " })
+    if (gstRate) {
+        const validGrandAmount = Number(totalAmount) + (totalAmount * (gstRate / 100))
+        if (validGrandAmount !== Number(grandTotal)) {
+            return res.status(400).send({ status: false, msg: "Incorrect grand amount " })
+        }
+    } else {
+        gstRate = ((Number(grandTotal) / Number(totalAmount)) - 1) * 100
+        gstRate=gstRate.toFixed(2)
+
     }
-    let getuser = await userModel.findById(userId)
-    if (!getuser) {
+
+    let getUser = await userModel.findById(userId)
+    if (!getUser) {
         res.status(400).send({
             status: false,
-            message: "user not found",
+            message: "User not found",
         });
         return;
     }
     let getStateOfSeller = sellerGSTIN.slice(0, 2)
-    let getStateOfUser = getuser.gstin.slice(0, 2)
+    let getStateOfUser = getUser.gstin.slice(0, 2)
+
     if (getStateOfSeller == getStateOfUser) {
         SGST = gstRate / 2
         CGST = gstRate / 2
     } else {
         IGST = gstRate
     }
-
     try {
         const userBill = new userBillModel({
             "invoiceNo": invoiceNo,
             "sellerGSTIN": sellerGSTIN,
-            "invoiceDate":invoiceDate,
+            "invoiceDate": invoiceDate,
             "totalAmount": totalAmount,
             "gstRate": gstRate,
             "grandTotal": grandTotal,

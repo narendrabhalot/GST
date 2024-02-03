@@ -23,7 +23,6 @@ const userBillSchema = new mongoose.Schema({
     },
     gstRate: {
         type: String,
-        required: true,
         trim: true,
     },
     grandTotal: {
