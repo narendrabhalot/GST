@@ -34,7 +34,7 @@ const sendOTP = async (req, res) => {
 
         await sendSMS(mobileNumber, otp);
 
-        res.status(201).send({ status: true, msg: "opt sent successfully" })
+        res.status(201).send({ status: true, msg: "Otp sent successfully" })
     } catch (error) {
         console.error(error);
         res.status(500).json({ status: false, message: 'Error sending OTP' });

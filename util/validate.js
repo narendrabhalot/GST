@@ -61,7 +61,7 @@ const userBillValidation = (data) => {
         }),
         invoiceDate: Joi.string().trim().pattern(/^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/).required().messages({
             'any.required': "Invoice date is required",
-            'string.pattern.base': "Ibnvoive date must be DD/MM/YYYY  format",
+            'string.pattern.base': "Invoice  date must be DD/MM/YYYY  format",
         }),
         sellerGSTIN: Joi.string().trim().length(15).pattern(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/).required().messages({
             'string.pattern.base': "Invalid GSTIN format",
