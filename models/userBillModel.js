@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 const userBillSchema = new mongoose.Schema({
-
     invoiceNo: {
         type: String,
         required: true,
