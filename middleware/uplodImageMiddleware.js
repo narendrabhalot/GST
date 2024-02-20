@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const app = express();
 app.use(express.urlencoded({ extended: true }));
-const storage = multer.diskStorage({
+const imageStorage = multer.diskStorage({
     destination: function (req, file, cb) {
         const gstin = req.params.gst;
         console.log(gstin)
@@ -20,10 +20,28 @@ const storage = multer.diskStorage({
         cb(null, uniquePrefix_ + '-' + file.originalname);
     },
 });
+const uploadImage = multer({ storage: imageStorage });
+const imageUpload = uploadImage.array("image");
 
-
-const upload = multer({ storage: storage });
-const imageupload = upload.array("image");
-
-module.exports = { imageupload }
-
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, path.join(__dirname, '..', 'uploads')); // Destination folder
+    },
+    filename: function (req, file, cb) {
+        cb(null, file.originalname); // Use the original file name
+    }
+});
+const fileFilter = (req, file, cb) => {
+    const ext = path.extname(file.originalname);
+    if (ext === '.xlsx') {
+        cb(null, true);
+    } else {
+        cb(new Error('Only .xlsx files are allowed'), false);
+    }
+};
+const upload = multer({
+    storage: storage,
+    fileFilter: fileFilter
+});
+const excelUpload = upload.single("excel");
+module.exports = { excelUpload, imageUpload };
