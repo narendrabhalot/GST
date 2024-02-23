@@ -1,6 +1,6 @@
-const userModel = require('../models/userModel')
-const userBillModel = require('../models/userBillModel')
-const { userBillValidation, isValidObjectId, isValidRequestBody } = require("../util/validate")
+    const userModel = require('../models/userModel')
+    const userBillModel = require('../models/userBillModel')
+    const { userBillValidation, isValidObjectId, isValidRequestBody } = require("../util/validate")
 const createUserBill = async (req, res) => {
     let { invoiceNo, invoiceDate, sellerGSTIN, totalAmount, gstRate, grandTotal } = req.body;
     const userId = req.params.id;

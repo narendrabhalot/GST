@@ -6,8 +6,8 @@ const moment = require('moment');
 const uploadImage = async (req, res) => {
     let files = req.files
     try {
-        if (!req.files) {
-            return res.status(400).json({ error: 'No file uploaded' });
+        if (files.length == 0) {
+            return res.status(400).json({ error: 'Please select a file! ' });
         }
         console.log(req.files)
         for (const file of files) {
@@ -15,23 +15,17 @@ const uploadImage = async (req, res) => {
                 image: file.originalname,
                 path: file.path,
             });
-
             await newImage.save();
         }
-
-        // const savedImage = await newImage.save();
         return res.send({ message: 'File uploaded successfully', });
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: 'Internal Server Error' });
     }
 };
-
-
 const getImage = async (req, res) => {
     const images = await imageModel.find()
     return res.status(200).send({ status: true, data: images })
-
 }
 const getImageByDateRange = async (req, res) => {
     let { startDate, endDate } = req.body;

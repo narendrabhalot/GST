@@ -32,7 +32,6 @@ const userValidation = (data) => {
     });
     return userSchema.validate(data);
 };
-
 const logInValidation = (data) => {
     const logInSchema = Joi.object({
         mobileNumber: Joi.string().trim().pattern(/^\+91[0-9]{10}$/).required().messages({
@@ -42,7 +41,6 @@ const logInValidation = (data) => {
     })
     return logInSchema.validate(data)
 }
-
 const otpValidation = (data) => {
     const otpSchema = Joi.object({
         otp: Joi.string().trim().min(6).max(6).required().messages({
@@ -53,11 +51,11 @@ const otpValidation = (data) => {
     })
     return otpSchema.validate(data)
 }
-
 const userBillValidation = (data) => {
     const userSchema = Joi.object({
         invoiceNo: Joi.string().trim().required().messages({
             'any.required': "InvoiceNo is required",
+            'any.string': "invoiceNo data type required string"
         }),
         invoiceDate: Joi.string().trim().pattern(/^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/).required().messages({
             'any.required': "Invoice date is required",
@@ -81,21 +79,32 @@ const userBillValidation = (data) => {
     });
     return userSchema.validate(data);
 };
-
+const loanValidation = (data) => {
+    const userSchema = Joi.object({
+        gstinNo: Joi.string().trim().length(15).pattern(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/).required().messages({
+            'string.pattern.base': "Invalid GSTIN format",
+            'any.required': "GSTIN number is required",
+            "string.length": "GSTIN length must be 15 characters long",
+        }),
+        mobileNo: Joi.string().trim().pattern(/^\+91[0-9]{10}$/).required().messages({
+            'any.required': "mobileNumber is required",
+            'string.pattern.base': "Invalid mobile number format",
+        }),
+        loanType: Joi.string().trim().valid("Home loan", "Business loan", "Vehicle loan", "Loan against Insurance", "Working Capital loan", "Personal Loan", "Short term business loan", "Education Loan", "Credit Cards")
+            .required().messages({ 'any.only': 'Invalid loan types. Must be Home loan, Business loan,  Vehicle loan, Loan against Insurance ,Working Capital loan ,Personal Loan ,Short term business loan, Education Loan, Credit Cards', 'any.required': ":Loan type  is required", }),
+    });
+    return userSchema.validate(data);
+};
 // mongoose  ObjectId validation
 const isValidObjectId = function (objectId) {
     return mongoose.Types.ObjectId.isValid(objectId); // returns a boolean
 };
-
 const isValidRequestBody = function (requestBody) {
     return Object.keys(requestBody).length > 0;
 };
-
 const isValid = function (value) {
     if (typeof value === "undefined" || value === null) return false;
     if (typeof value === "string" && value.trim().length === 0) return false;
     return true;
 };
-
-
-module.exports = { userValidation, logInValidation, otpValidation, userBillValidation, isValidObjectId, isValidRequestBody, isValid }
+module.exports = { userValidation, logInValidation, otpValidation, userBillValidation, loanValidation, isValidObjectId, isValidRequestBody, isValid }

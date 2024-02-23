@@ -23,6 +23,7 @@ const imageStorage = multer.diskStorage({
 const uploadImage = multer({ storage: imageStorage });
 const imageUpload = uploadImage.array("image");
 
+
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, path.join(__dirname, '..', 'uploads')); // Destination folder

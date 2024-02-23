@@ -6,22 +6,25 @@ const { createUserBill } = require('../controllers/userBillController')
 const { uploadImage, getImage, getImageByDateRange } = require('../controllers/imageUploadController')
 const { uploadExcelFile } = require('../controllers/excelFileController')
 const { excelUpload, imageUpload } = require('../middleware/uplodImageMiddleware')
+const { createLoan } = require('../controllers/loanController')
+
 //FOR User route
 router.post('/register', createUser)
 router.post('/send-otp', sendOTP)
 router.post('/verify-otp', verifyOTP)
 router.post('/userBill/:id', createUserBill)
+
 // Image Upload route
 router.post('/upload-image/:gst', imageUpload, uploadImage)
 router.get('/images', getImage)
 router.post('/imageDate', getImageByDateRange)
 // for excel file router 
-router.post('/upload-excel', excelUpload, uploadExcelFile)
+router.post('/upload-excel/:id', excelUpload, uploadExcelFile)
+// for loan route
+router.post('/loan', createLoan)
 router.all("/*", function (req, res) {
   res
     .status(404)
     .send({ status: false, msg: "The api you requested is not available" });
 });
-
-
 module.exports = router;
