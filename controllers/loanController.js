@@ -17,12 +17,12 @@ const createLoan = async (req, res) => {
             msg: " Mobile number is not  registered."
         })
     }
-    let checkduplicateGSTIN = await loanModel.findOne({ gstin: req.body.gstin })
-    console.log(checkduplicateGSTIN)
+    let checkduplicateGSTIN = await userModel.findOne({ gstin: req.body.gstin })
+
     if (checkduplicateGSTIN) {
         return res.status(400).send({
             status: false,
-            msg: " gstin number is already used."
+            msg: " gstin number is not used."
         })
     }
     try {
