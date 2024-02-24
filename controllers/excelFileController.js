@@ -28,9 +28,9 @@ const uploadExcelFile = async (req, res) => {
             }
             rowData.invoiceNo = String(rowData.invoiceNo);
             rowData.invoiceDate = String(rowData.invoiceDate);
-            // Convert the worksheet to a JSON object
+            rowData.gstRate = Number(rowData.gstRate);
 
-            // Validating user bill
+
             const userBillValidationResult = await userBillValidation(rowData);
             if (userBillValidationResult.error) {
                 return { error: userBillValidationResult.error.message };
@@ -50,11 +50,14 @@ const uploadExcelFile = async (req, res) => {
             const getStateOfSeller = sellerGSTIN.slice(0, 2);
             const getStateOfUser = getUser.gstin.slice(0, 2);
             if (getStateOfSeller === getStateOfUser) {
-                SGST = gstRate / 2;
-                CGST = gstRate / 2;
+                SGST = Number(gstRate) / 2;
+                CGST = Number(gstRate) / 2;
             } else {
-                IGST = gstRate;
+                IGST = Number(gstRate);
             }
+
+
+
             // Creating user bill
             const userBillData = {
                 invoiceNo,
