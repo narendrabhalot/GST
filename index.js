@@ -1,6 +1,7 @@
 
 
 const express = require("express");
+const path= require('path')
 const session = require('express-session')
 const bodyParser = require("body-parser");
 
@@ -15,11 +16,8 @@ const app = express();
 const route = require("./routes/route");
 
 app.use(bodyParser.json());
-app.use(
-    bodyParser.urlencoded({
-        extended: true,
-    })
-);
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(session({
     secret: sessionSecret,
     resave: false,
@@ -30,6 +28,8 @@ app.use(cors({
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true, // Enable if you need to send cookies with the request
 }));
+app.use(express.static(path.join(__dirname, 'uploads')));
+
 app.use("/", route);
 mongoose.connect(dbConnectionString, {
     useUnifiedTopology: true,
