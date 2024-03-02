@@ -1,7 +1,7 @@
 
 
 const express = require("express");
-const path= require('path')
+const path = require('path')
 const session = require('express-session')
 const bodyParser = require("body-parser");
 
@@ -29,7 +29,7 @@ app.use(cors({
     credentials: true, // Enable if you need to send cookies with the request
 }));
 app.use(express.static(path.join(__dirname, 'uploads')));
-
+console.log("this is the file ", path.join(__dirname, 'uploads'));
 app.use("/", route);
 mongoose.connect(dbConnectionString, {
     useUnifiedTopology: true,
