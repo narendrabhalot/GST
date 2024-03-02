@@ -1,4 +1,5 @@
 const sellerBillModel = require('../models/sellerBillModel')
+const purchaserBillModel = require('../models/purchaserBillModel')
 const userModel = require('../models/userModel');
 const { billValidation, isValidRequestBody } = require("../util/validate");
 const xlsx = require("xlsx");
@@ -19,9 +20,8 @@ async function uploadExcelFile(req, res) {
         }
         const getUserByGSTIN = await userModel.findOne({ gstin: userGSTIN });
         if (!getUserByGSTIN) {
-           return  res.status(400).send({ status: false, msg: "User(GSTIN) is not register " });
+            return res.status(400).send({ status: false, msg: "User(GSTIN) is not register " });
         }
-
         let SGST, CGST, IGST;
         const existingInvoiceMap = new Map();
         for (const invoice of await sellerBillModel.find({
@@ -32,11 +32,11 @@ async function uploadExcelFile(req, res) {
             existingInvoiceMap.set(`${invoice.sellerGSTIN}-${invoice.invoiceNo}-${invoice.invoiceDate}`, invoice);
         }
         const results = [];
-        const temp = []     
+        const temp = []
         for (const rowData of data) {
             rowData.userGSTIN = userGSTIN
-            let { invoiceNo, invoiceDate, sellerGSTIN, purchaserGSTIN, sellerName, purchaserName, totalAmount, gstRate, grandTotal, billType } = rowData
-
+            rowData.billType = billType
+            let { invoiceNo, invoiceDate, sellerGSTIN, purchaserGSTIN, sellerName, purchaserName, totalAmount, gstRate, grandTotal, Cess } = rowData
             const billValidationResult = await billValidation(rowData);
             if (billValidationResult.error) {
                 results.push({ errorMessage: billValidationResult.error.details[0].message, errorRow: rowData })
@@ -61,32 +61,63 @@ async function uploadExcelFile(req, res) {
                     continue;
                 }
             }
-            const getStateOfSeller = sellerGSTIN.slice(0, 2);
-            IGST = getStateOfSeller === getStateOfUser ? 0 : gstRate;
-            SGST = CGST = getStateOfSeller === getStateOfUser ? gstRate / 2 : 0;
-            const userBillData = {
-                userGSTIN,
-                invoiceNo,
-                sellerGSTIN,
-                sellerName,
-                invoiceDate,
-                totalAmount,
-                gstRate,
-                grandTotal,
-                SGST,
-                CGST,
-                IGST,
-            };
-            temp.push(userBillData)
-        }
-        if (results.length == 0) {
-            for (let ele of temp) {
-                let sellerdoc = await new sellerBillModel(ele)
-                await sellerdoc.save()
+            if (billType == 'seller') {
+                const getStateOfSeller = sellerGSTIN.slice(0, 2);
+                IGST = getStateOfSeller === getStateOfUser ? 0 : gstRate;
+                SGST = CGST = getStateOfSeller === getStateOfUser ? gstRate / 2 : 0;
+                const sellerBillData = {
+                    userGSTIN,
+                    invoiceNo,
+                    sellerGSTIN,
+                    sellerName,
+                    invoiceDate,
+                    totalAmount,
+                    gstRate,
+                    grandTotal,
+                    SGST,
+                    CGST,
+                    IGST,
+                    Cess
+                };
+                temp.push(sellerBillData)
+            } else {
+                const getStateOfPurchaser = purchaserGSTIN.slice(0, 2);
+                IGST = getStateOfPurchaser === getStateOfUser ? 0 : gstRate;
+                SGST = CGST = getStateOfPurchaser === getStateOfUser ? gstRate / 2 : 0;
+                const purchaserBillData = {
+                    userGSTIN,
+                    invoiceNo,
+                    purchaserGSTIN,
+                    purchaserName,
+                    invoiceDate,
+                    totalAmount,
+                    gstRate,
+                    grandTotal,
+                    SGST,
+                    CGST,
+                    IGST,
+                    Cess
+                };
+                temp.push(purchaserBillData)
             }
-            res.status(201).json({ data: " file uploaded successfully " })
-        } else { res.status(400).json({ data: results }) }
-
+        }
+        if (billType == "seller") {
+            if (results.length == 0) {
+                for (let ele of temp) {
+                    let sellerdoc = await new sellerBillModel(ele)
+                    await sellerdoc.save()
+                }
+                res.status(201).json({ data: " file uploaded successfully " })
+            } else { res.status(400).json({ data: results }) }
+        } else {
+            if (results.length == 0) {
+                for (let ele of temp) {
+                    let purchaserDoc = await new purchaserBillModel(ele)
+                    await purchaserDoc.save()
+                }
+                res.status(201).json({ data: " file uploaded successfully " })
+            } else { res.status(400).json({ data: results }) }
+        }
     } catch (error) {
         console.error('Error processing and saving data:', error);
         res.status(500).json({ error: 'Internal server error' });

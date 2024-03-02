@@ -82,20 +82,22 @@ const billValidation = (data) => {
                 "string.length": "Purchaser GSTIN length must be 15 characters long",
             })
         }),
-        sellerName: Joi.alternatives().try(
-            Joi.string().trim().required().messages({
-                'any.required': "Seller name is required",
-                'any.string': "Seller name data type required string"
-            }),
-            Joi.allow(null)
-        ),
-        purchaserName: Joi.alternatives().try(
-            Joi.string().trim().required().messages({
-                'any.required': "Purchaser name is required",
-                'any.string': "Purchaser name data type required string"
-            }),
-            Joi.allow(null)
-        ),
+        billType: Joi.string().valid('seller', 'purchaser').required().messages({
+            'any.only': 'Invalid bill type. Must be either "seller" or "purchaser"',
+            'any.required': 'Bill type is required'
+        }),
+        sellerName: Joi.string().trim().when('billType', {
+            is: 'seller',
+            then: Joi.required().messages({
+                'any.required': 'Seller name is required '
+            })
+        }),
+        purchaserName: Joi.string().trim().when('billType', {
+            is: 'purchaser',
+            then: Joi.required().messages({
+                'any.required': 'Purchaser name is required "'
+            })
+        }),
         totalAmount: Joi.string().trim().required().messages({
             'any.required': "Total amount is required",
         }),
