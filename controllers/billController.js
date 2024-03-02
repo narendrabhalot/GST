@@ -3,7 +3,7 @@ const sellerBillModel = require('../models/sellerBillModel')
 const purchaserBillModel = require('../models/purchaserBillModel')
 const { billValidation, isValidRequestBody } = require("../util/validate")
 const createUserBill = async (req, res) => {
-    let { invoiceNo, invoiceDate, sellerGSTIN, purchaserGSTIN, sellerName, purchaserName, totalAmount, gstRate, grandTotal, billType } = req.body;
+    let { invoiceNo, invoiceDate, sellerGSTIN, purchaserGSTIN, sellerName, purchaserName, totalAmount, gstRate, grandTotal, billType, Cess } = req.body;
     const userGSTIN = req.params.gstin
 
     // Validating request body
@@ -39,7 +39,7 @@ const createUserBill = async (req, res) => {
         return res.status(500).json({ status: false, message: "Error fetching seller", error: error.message });
     }
 
-    let SGST, CGST, IGST, Cess
+    let SGST, CGST, IGST
     const getStateOfUser = userGSTIN.slice(0, 2);
     if (billType == "seller") {
         const getStateOfSeller = sellerGSTIN.slice(0, 2);

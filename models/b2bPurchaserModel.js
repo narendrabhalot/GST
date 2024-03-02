@@ -64,5 +64,5 @@ const b2bPurchaserSchema = new mongoose.Schema({
     },
 
 }, { "timestamps": true });
-const userBill = mongoose.model('b2bPurchaser',b2bPurchaserSchema);
+const userBill = mongoose.model('b2bPurchaser', b2bPurchaserSchema);
 module.exports = userBill;

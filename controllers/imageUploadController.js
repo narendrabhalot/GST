@@ -1,9 +1,15 @@
-const imageModel = require('../models/imageModel');
+const sellerImageModel = require('../models/sellerImageMOdel');
+const purchaserImageModel = require('../models/purchaserImageMOdel');
+
 
 const moment = require('moment');
 
 // Function to handle image upload and database storage
 const uploadImage = async (req, res) => {
+    const userType = req.params.userType
+    if(!userType){
+        return res.status(400).send({status:false,msg:"invalid user type.Must have a seller or purchaser"})
+    }
     let files = req.files
     try {
         if (files.length == 0) {
@@ -11,11 +17,21 @@ const uploadImage = async (req, res) => {
         }
         console.log(req.files)
         for (const file of files) {
-            const newImage = new imageModel({
-                image: file.originalname,
-                path: file.path,
-            });
-            await newImage.save();
+
+            if (userType == "seller") {
+                const newImage = new sellerImageModel({
+                    image: file.originalname,
+                    path: file.path,
+                });
+
+                await newImage.save();
+            } else {
+                const newImage = new purchaserImageModel({
+                    image: file.originalname,
+                    path: file.path,
+                });
+                await newImage.save();
+            }
         }
         return res.send({ message: 'File uploaded successfully', });
     } catch (error) {

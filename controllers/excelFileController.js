@@ -19,7 +19,7 @@ async function uploadExcelFile(req, res) {
         }
         const getUserByGSTIN = await userModel.findOne({ gstin: userGSTIN });
         if (!getUserByGSTIN) {
-            throw new Error("User not found");
+           return  res.status(400).send({ status: false, msg: "User(GSTIN) is not register " });
         }
 
         let SGST, CGST, IGST;
@@ -32,8 +32,9 @@ async function uploadExcelFile(req, res) {
             existingInvoiceMap.set(`${invoice.sellerGSTIN}-${invoice.invoiceNo}-${invoice.invoiceDate}`, invoice);
         }
         const results = [];
-        const temp = []
+        const temp = []     
         for (const rowData of data) {
+            rowData.userGSTIN = userGSTIN
             let { invoiceNo, invoiceDate, sellerGSTIN, purchaserGSTIN, sellerName, purchaserName, totalAmount, gstRate, grandTotal, billType } = rowData
 
             const billValidationResult = await billValidation(rowData);

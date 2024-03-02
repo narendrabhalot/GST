@@ -110,6 +110,7 @@ const billValidation = (data) => {
 
             'any.only': 'Invalid bill types. Must be seller or purchaser',
         }),
+        Cess: Joi.string().optional()
     });
     return userSchema.validate(data);
 };

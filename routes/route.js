@@ -16,7 +16,7 @@ router.post('/verify-otp', verifyOTP)
 router.post('/userBill/:gstin', createUserBill)
 
 // Image Upload route
-router.post('/upload-image/:gst', imageUpload, uploadImage)
+router.post('/upload-image/:gst/:userType', imageUpload, uploadImage)
 router.get('/images', getImage)
 router.post('/imageDate', getImageByDateRange)
 // for excel file router 

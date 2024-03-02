@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const moment = require('moment');
 
-const imageSchema = new mongoose.Schema({
+const sellerImageSchema = new mongoose.Schema({
     image: String,
     path: String,
     date: {
@@ -11,5 +11,5 @@ const imageSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 
-const Image = mongoose.model('Image', imageSchema);
-module.exports = Image;
+const sellerImage = mongoose.model('sellerImage', sellerImageSchema);
+module.exports = sellerImage;
