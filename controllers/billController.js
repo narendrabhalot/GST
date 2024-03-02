@@ -6,11 +6,11 @@ const createUserBill = async (req, res) => {
     let { invoiceNo, invoiceDate, sellerGSTIN, purchaserGSTIN, sellerName, purchaserName, totalAmount, gstRate, grandTotal, billType } = req.body;
     const userGSTIN = req.params.gstin
 
-
     // Validating request body
     if (!isValidRequestBody(req.body)) {
         return res.status(400).send({ status: false, message: "Invalid request parameters", data: null });
     }
+    req.body.userGSTIN = userGSTIN
     const billValidationResult = await billValidation(req.body);
     if (billValidationResult.error) {
         return res.status(400).send({ status: false, msg: billValidationResult.error.message });
@@ -38,7 +38,7 @@ const createUserBill = async (req, res) => {
     } catch (error) {
         return res.status(500).json({ status: false, message: "Error fetching seller", error: error.message });
     }
-   
+
     let SGST, CGST, IGST, Cess
     const getStateOfUser = userGSTIN.slice(0, 2);
     if (billType == "seller") {

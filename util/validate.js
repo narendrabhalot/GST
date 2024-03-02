@@ -52,8 +52,12 @@ const otpValidation = (data) => {
     return otpSchema.validate(data)
 }
 const billValidation = (data) => {
-
     const userSchema = Joi.object({
+        userGSTIN: Joi.string().trim().length(15).pattern(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/).required().messages({
+            'string.pattern.base': "Invalid User GSTIN format",
+            'any.required': " User GSTIN number is required",
+            "string.length": "User GSTIN length must be 15 characters long",
+        }),
         invoiceNo: Joi.string().trim().required().messages({
             'any.required': "InvoiceNo is required",
             'any.string': "invoiceNo data type required string"
