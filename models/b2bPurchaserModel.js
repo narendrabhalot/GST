@@ -1,5 +1,10 @@
 const mongoose = require('mongoose');
-const userBillSchema = new mongoose.Schema({
+const b2bPurchaserSchema = new mongoose.Schema({
+    userGSTIN: {
+        type: String,
+        required: true,
+        trim: true,
+    },
     invoiceNo: {
         type: String,
         required: true,
@@ -10,7 +15,12 @@ const userBillSchema = new mongoose.Schema({
         required: true,
         trim: true,
     },
-    sellerGSTIN: {
+    purchaserGSTIN: {
+        type: String,
+        required: true,
+        trim: true,
+    },
+    purchaserName: {
         type: String,
         required: true,
         trim: true,
@@ -33,6 +43,10 @@ const userBillSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    Cess: {
+        type: Number,
+        default: 0
+    },
     SGST: {
         type: Number,
         trim: true,
@@ -48,6 +62,7 @@ const userBillSchema = new mongoose.Schema({
         trim: true,
         default: 0,
     },
+
 }, { "timestamps": true });
-const userBill = mongoose.model('userBillSchema', userBillSchema);
+const userBill = mongoose.model('b2bPurchaser',b2bPurchaserSchema);
 module.exports = userBill;

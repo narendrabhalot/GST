@@ -51,7 +51,8 @@ const otpValidation = (data) => {
     })
     return otpSchema.validate(data)
 }
-const userBillValidation = (data) => {
+const billValidation = (data) => {
+
     const userSchema = Joi.object({
         invoiceNo: Joi.string().trim().required().messages({
             'any.required': "InvoiceNo is required",
@@ -59,24 +60,52 @@ const userBillValidation = (data) => {
         }),
         invoiceDate: Joi.string().trim().pattern(/^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/).required().messages({
             'any.required': "Invoice date is required",
-            'string.pattern.base': "Invoice  date must be DD/MM/YYYY  format",
+            'string.pattern.base': "Invoice date must be DD/MM/YYYY format",
         }),
-        sellerGSTIN: Joi.string().trim().length(15).pattern(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/).required().messages({
-            'string.pattern.base': "Invalid GSTIN format",
-            'any.required': " Seller GSTIN number is required",
-            "string.length": " Seller GSTIN length must be 15 characters long",
+        sellerGSTIN: Joi.when('billType', {
+            is: 'seller',
+            then: Joi.string().trim().length(15).pattern(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/).required().messages({
+                'string.pattern.base': "Invalid GSTIN format",
+                'any.required': "Seller GSTIN number is required",
+                "string.length": "Seller GSTIN length must be 15 characters long",
+            })
         }),
+        purchaserGSTIN: Joi.when('billType', {
+            is: 'purchaser',
+            then: Joi.string().trim().length(15).pattern(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/).required().messages({
+                'string.pattern.base': "Invalid GSTIN format",
+                'any.required': "Purchaser GSTIN number is required",
+                "string.length": "Purchaser GSTIN length must be 15 characters long",
+            })
+        }),
+        sellerName: Joi.alternatives().try(
+            Joi.string().trim().required().messages({
+                'any.required': "Seller name is required",
+                'any.string': "Seller name data type required string"
+            }),
+            Joi.allow(null)
+        ),
+        purchaserName: Joi.alternatives().try(
+            Joi.string().trim().required().messages({
+                'any.required': "Purchaser name is required",
+                'any.string': "Purchaser name data type required string"
+            }),
+            Joi.allow(null)
+        ),
         totalAmount: Joi.string().trim().required().messages({
             'any.required': "Total amount is required",
         }),
-        gstRate: Joi.number().valid(0, 5, 12, 18, 28).messages({
+        gstRate: Joi.number().valid(0, 5, 12, 18, 28).optional().messages({
             'number.base': 'Invalid GST rate. Must be a number',
             'any.only': 'Invalid GST rate. Must be 0, 5, 12, 18, 28',
         }),
         grandTotal: Joi.string().trim().required().messages({
             'any.required': "GrandTotal is required",
         }),
+        billType: Joi.string().trim().valid('seller', 'purchaser').messages({
 
+            'any.only': 'Invalid bill types. Must be seller or purchaser',
+        }),
     });
     return userSchema.validate(data);
 };
@@ -108,4 +137,4 @@ const isValid = function (value) {
     if (typeof value === "string" && value.trim().length === 0) return false;
     return true;
 };
-module.exports = { userValidation, logInValidation, otpValidation, userBillValidation, loanValidation, isValidObjectId, isValidRequestBody, isValid }
+module.exports = { userValidation, logInValidation, otpValidation, billValidation, loanValidation, isValidObjectId, isValidRequestBody, isValid }
