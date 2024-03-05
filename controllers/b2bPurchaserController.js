@@ -51,7 +51,12 @@ const uploadB2BExcelFile = async (req, res) => {
             return res.status(400).json({ error: 'No file uploaded' });
         }
         const fileName = req.file.originalname;
+        const sheetName = req.body.sheetName
+        if (!sheetName) {
+            return res.status(400).send({ status: false, msg: "Sheet name body parameter is required " })
+        }
         const range = req.body.startRowData ? req.body.startRowData - 2 : 5
+
         const getUserGSTIN = fileName.split('_')[1];
         const gstSchema = Joi.string()
             .trim()
@@ -71,13 +76,14 @@ const uploadB2BExcelFile = async (req, res) => {
             }
         }
         const validSheetNames = new Set(["B2B", "B2BA"])
-        if (!validSheetNames.has(req.params.dataType)) {
+        if (!validSheetNames.has(sheetName)) {
             return res.status(400).json({ message: 'Invalid parameter: dataType must be either B2B or B2BA' });
         }
         const filePath = req.file.path;
         const workbook = await xlsx.readFile(filePath);
-        const worksheet = workbook.Sheets[req.params.dataType];
+        const worksheet = workbook.Sheets[sheetName];
         let data = xlsx.utils.sheet_to_json(worksheet, { range: range });
+        console.log(data)
         const mappingDatais = mappingOfExcelData(data)
         const existingInvoiceMap = new Map();
         for (const invoice of await b2bPurchaserModel.find({
@@ -123,7 +129,7 @@ const uploadB2BExcelFile = async (req, res) => {
             await purchaserBill.save();
         }
         if (results.length == 0) {
-            return res.json({ status: true, message: 'Data extracted and saved successfully' });
+            return res.status(200).json({ status: true, message: 'Data extracted and saved successfully' });
         } else {
             return res.json({ status: false, error: results });
         }
@@ -136,35 +142,7 @@ const uploadB2BExcelFile = async (req, res) => {
 };
 
 
-// if (columnMapping) {
-//     data.map(async (row) => {
-//         const normalizedRow = {};
-//         for (const key in row) {
-//             const normalizedKey = columnMapping[key] || key;
-//             normalizedRow[normalizedKey] = String(row[key]);
-//         }
-//         const validGrandAmount = Number(normalizedRow.totalAmount) + (normalizedRow.totalAmount * (normalizedRow.gstRate / 100));
-//         normalizedRow.grandTotal = String(validGrandAmount)
-//         console.log("normalizedRow is ", normalizedRow)
-//         let { invoiceNo, invoiceDate, purchaserGSTIN, purchaserName, totalAmount, gstRate, grandTotal, billType, SGST, CGST, IGST, Cess } = normalizedRow;
-//         const B2BPurchaserData = {
-//             userGSTIN: getUserGSTIN,
-//             invoiceNo,
-//             invoiceDate,
-//             purchaserGSTIN,
-//             purchaserName,
-//             totalAmount,
-//             gstRate,
-//             grandTotal,
-//             SGST,
-//             CGST,
-//             IGST,
-//             Cess
-//         };
-//         const purchaserBill = new b2bPurchaserModel(B2BPurchaserData);
-//         await purchaserBill.save();
-//     })
-// }
+
 
 
 module.exports = { uploadB2BExcelFile };

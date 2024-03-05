@@ -21,7 +21,7 @@ router.get('/images', getImage)
 router.post('/imageDate', getImageByDateRange)
 // for excel file router 
 router.post('/upload-excel/:billType/:id', excelUpload, uploadExcelFile)
-router.post('/upload-excel/:dataType', excelUpload, uploadB2BExcelFile)
+router.post('/upload-b2bexcel', excelUpload, uploadB2BExcelFile)
 
 // for loan route
 router.post('/loan', createLoan)
