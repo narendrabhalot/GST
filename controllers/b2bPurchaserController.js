@@ -3,12 +3,55 @@ const path = require('path');
 const xlsx = require('xlsx');
 const Joi = require('joi');
 const b2bPurchaserModel = require('../models/b2bPurchaserModel');
+const { billValidation } = require("../util/validate");
+
+
+function mappingOfExcelData(data) {
+    const finalMappingData = []
+    const columnMapping = {
+        '__EMPTY': 'purchaserGSTIN',
+        '__EMPTY_1': 'purchaserName',
+        'Invoice number': 'invoiceNo',
+        'Invoice type': 'supply_type',
+        'Invoice Date': 'invoiceDate',
+        'Invoice Value(₹)': 'grandTotal',
+        '__EMPTY_2': 'place_of_supply',
+        '__EMPTY_3': 'Supply_Attract_Reverse_Charge',
+        '__EMPTY_4': 'gstRate',
+        '__EMPTY_5': 'totalAmount',
+        'Integrated Tax(₹)': 'IGST',
+        'Central Tax(₹)': 'CGST',
+        'State/UT Tax(₹)': 'SGST',
+        'Cess(₹)': 'Cess(₹)',
+        '__EMPTY_6': 'GSTR-1/IFF/GSTR-5_Period',
+        '__EMPTY_7': 'GSTR-1/IFF/GSTR-5_Filing Date',
+        '__EMPTY_8': 'ITC_Availability',
+        '__EMPTY_9': 'Reason',
+        '__EMPTY_10': 'Applicable_%_of_Tax_Rate',
+        '__EMPTY_11': 'Source',
+        '__EMPTY_12': 'IRN',
+        '__EMPTY_13': 'IRN Date',
+    };
+    data.map(async (row) => {
+        const normalizedRow = {};
+        for (const key in row) {
+            const normalizedKey = columnMapping[key] || key;
+            normalizedRow[normalizedKey] = String(row[key]);
+        }
+
+        finalMappingData.push(normalizedRow)
+    })
+
+    return finalMappingData
+}
 const uploadB2BExcelFile = async (req, res) => {
     try {
         if (!req.file) {
+            console.log("narendra")
             return res.status(400).json({ error: 'No file uploaded' });
         }
         const fileName = req.file.originalname;
+        const range = req.body.startRowData ? req.body.startRowData - 2 : 5
         const getUserGSTIN = fileName.split('_')[1];
         const gstSchema = Joi.string()
             .trim()
@@ -22,85 +65,106 @@ const uploadB2BExcelFile = async (req, res) => {
             });
         const { error: gstError, value: validatedGST } = gstSchema.validate(getUserGSTIN);
         if (gstError) {
-            return res.status(400).json({ error: gstError.details[0].message });
+            getUserGSTIN = req.body.userGSTIN
+            if (getUserGSTIN.lemgth == 0) {
+                return res.status(400).send({ status: false, msg: "User's GSTIN number is required " })
+            }
         }
-
         const validSheetNames = new Set(["B2B", "B2BA"])
         if (!validSheetNames.has(req.params.dataType)) {
             return res.status(400).json({ message: 'Invalid parameter: dataType must be either B2B or B2BA' });
         }
-
-        const columnMapping = {
-            '__EMPTY': 'purchaserGSTIN',
-            '__EMPTY_1': 'purchaserName',
-            'Invoice number': 'invoiceNo',
-            'Invoice type': 'supply_type',
-            'Invoice Date': 'invoiceDate',
-            'Invoice Value(₹)': 'totalAmount',
-            '__EMPTY_2': 'place_of_supply',
-            '__EMPTY_3': 'Supply_Attract_Reverse_Charge',
-            '__EMPTY_4': 'gstRate',
-            '__EMPTY_5': 'Taxable_Value',
-            'Integrated Tax(₹)': 'IGST',
-            'Central Tax(₹)': 'CGST',
-            'State/UT Tax(₹)': 'SGST',
-            'Cess(₹)': 'Cess(₹)',
-            '__EMPTY_6': 'GSTR-1/IFF/GSTR-5_Period',
-            '__EMPTY_7': 'GSTR-1/IFF/GSTR-5_Filing Date',
-            '__EMPTY_8': 'ITC_Availability',
-            '__EMPTY_9': 'Reason',
-            '__EMPTY_10': 'Applicable_%_of_Tax_Rate',
-            '__EMPTY_11': 'Source',
-            '__EMPTY_12': 'IRN',
-            '__EMPTY_13': 'IRN Date',
-        };
         const filePath = req.file.path;
         const workbook = await xlsx.readFile(filePath);
         const worksheet = workbook.Sheets[req.params.dataType];
-        let data = xlsx.utils.sheet_to_json(worksheet, { range: 5 });
+        let data = xlsx.utils.sheet_to_json(worksheet, { range: range });
+        const mappingDatais = mappingOfExcelData(data)
+        const existingInvoiceMap = new Map();
+        for (const invoice of await b2bPurchaserModel.find({
+            $and: [
+                { purchaserGSTIN: { $in: mappingDatais.map(row => row.purchaserGSTIN) } },
+                { invoiceNo: { $in: mappingDatais.map(row => row.invoiceNo) } },
+                { invoiceDate: { $in: mappingDatais.map(row => row.invoiceDate) } },
+            ]
+        }
+        )) {
+            existingInvoiceMap.set(`${invoice.purchaserGSTIN}-${invoice.invoiceNo}-${invoice.invoiceDate}`, invoice)
+        }
+        const results = []
 
-        // const existingInvoiceMap = new Map();
-        // for (const invoice of await b2bPurchaserModel.find({
-        //     sellerGSTIN: { $in: data.map(row => row.sellerGSTIN) },
-        //     invoiceNo: { $in: data.map(row => row.invoiceNo) },
-        //     invoiceDate: { $in: data.map(row => row.invoiceDate) },
-        // })) {
-        //     existingInvoiceMap.set(`${invoice.sellerGSTIN}-${invoice.invoiceNo}-${invoice.invoiceDate}`, invoice);
-        // }
-        // if (columnMapping) {
-        //     data.map(async (row) => {
-        //         const normalizedRow = {};
-        //         for (const key in row) {
-        //             const normalizedKey = columnMapping[key] || key;
-        //             normalizedRow[normalizedKey] = String(row[key]);
-        //         }
-        //         const validGrandAmount = Number(normalizedRow.totalAmount) + (normalizedRow.totalAmount * (normalizedRow.gstRate / 100));
-        //         normalizedRow.grandTotal = String(validGrandAmount)
-        //         console.log("normalizedRow is ", normalizedRow)
-        //         let { invoiceNo, invoiceDate, purchaserGSTIN, purchaserName, totalAmount, gstRate, grandTotal, billType, SGST, CGST, IGST, Cess } = normalizedRow;
-        //         const purchaserBillData = {
-        //             userGSTIN: getUserGSTIN,
-        //             invoiceNo,
-        //             invoiceDate,
-        //             purchaserGSTIN,
-        //             purchaserName,
-        //             totalAmount,
-        //             gstRate,
-        //             grandTotal,
-        //             SGST,
-        //             CGST,
-        //             IGST,
-        //             Cess
-        //         };
-        //         const purchaserBill = new b2bPurchaserModel(purchaserBillData);
-        //         await purchaserBill.save();
-        //     })
-        // }
-        res.json({ message: 'Data extracted and saved successfully' ,data:data});
+        for (let item of mappingDatais) {
+            let { invoiceNo, invoiceDate, purchaserGSTIN, purchaserName, totalAmount, gstRate, grandTotal, billType, SGST, CGST, IGST, Cess } = item;
+
+            let sendDatais = { invoiceNo, invoiceDate, purchaserGSTIN, purchaserName, totalAmount, gstRate, grandTotal, billType, Cess, userGSTIN: getUserGSTIN }
+            const billValidationResult = await billValidation(sendDatais);
+            if (billValidationResult.error) {
+                results.push({ errorMessage: billValidationResult.error.details[0].message, errorRow: item })
+                continue;
+            }
+            const key = `${purchaserGSTIN}-${invoiceNo}-${invoiceDate}`;
+            if (existingInvoiceMap.has(key)) {
+                continue;
+            }
+            const B2BPurchaserData = {
+                userGSTIN: getUserGSTIN,
+                invoiceNo,
+                invoiceDate,
+                purchaserGSTIN,
+                purchaserName,
+                totalAmount,
+                gstRate,
+                grandTotal,
+                SGST,
+                CGST,
+                IGST,
+                Cess
+            };
+            const purchaserBill = new b2bPurchaserModel(B2BPurchaserData);
+            await purchaserBill.save();
+        }
+        if (results.length == 0) {
+            return res.json({ status: true, message: 'Data extracted and saved successfully' });
+        } else {
+            return res.json({ status: false, error: results });
+        }
+
+
     } catch (error) {
         console.error('Error processing and saving data:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 };
+
+
+// if (columnMapping) {
+//     data.map(async (row) => {
+//         const normalizedRow = {};
+//         for (const key in row) {
+//             const normalizedKey = columnMapping[key] || key;
+//             normalizedRow[normalizedKey] = String(row[key]);
+//         }
+//         const validGrandAmount = Number(normalizedRow.totalAmount) + (normalizedRow.totalAmount * (normalizedRow.gstRate / 100));
+//         normalizedRow.grandTotal = String(validGrandAmount)
+//         console.log("normalizedRow is ", normalizedRow)
+//         let { invoiceNo, invoiceDate, purchaserGSTIN, purchaserName, totalAmount, gstRate, grandTotal, billType, SGST, CGST, IGST, Cess } = normalizedRow;
+//         const B2BPurchaserData = {
+//             userGSTIN: getUserGSTIN,
+//             invoiceNo,
+//             invoiceDate,
+//             purchaserGSTIN,
+//             purchaserName,
+//             totalAmount,
+//             gstRate,
+//             grandTotal,
+//             SGST,
+//             CGST,
+//             IGST,
+//             Cess
+//         };
+//         const purchaserBill = new b2bPurchaserModel(B2BPurchaserData);
+//         await purchaserBill.save();
+//     })
+// }
+
 
 module.exports = { uploadB2BExcelFile };

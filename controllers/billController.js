@@ -44,8 +44,7 @@ const createUserBill = async (req, res) => {
     if (billType == "seller") {
         const getStateOfSeller = sellerGSTIN.slice(0, 2);
         if (getStateOfSeller === getStateOfUser) {
-            SGST = gstRate / 2;
-            CGST = gstRate / 2;
+            SGST = CGST = gstRate / 2;
         } else {
             IGST = gstRate;
         }
