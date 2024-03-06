@@ -62,7 +62,18 @@ const b2bPurchaserSchema = new mongoose.Schema({
         trim: true,
         default: 0,
     },
-
+    amendment: {
+        type: String,
+        trim: true,
+    },
+    oldInvoiceNumber: {
+        type: String,
+        trim: true,
+    },
+    oldInvoiceDate: {
+        type: String,
+        trim: true,
+    },
 }, { "timestamps": true });
 const userBill = mongoose.model('b2bPurchaser', b2bPurchaserSchema);
 module.exports = userBill;

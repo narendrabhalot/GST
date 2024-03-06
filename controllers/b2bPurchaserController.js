@@ -47,7 +47,6 @@ function mappingOfExcelData(data) {
 const uploadB2BExcelFile = async (req, res) => {
     try {
         if (!req.file) {
-            console.log("narendra")
             return res.status(400).json({ error: 'No file uploaded' });
         }
         const fileName = req.file.originalname;
@@ -83,8 +82,9 @@ const uploadB2BExcelFile = async (req, res) => {
         const workbook = await xlsx.readFile(filePath);
         const worksheet = workbook.Sheets[sheetName];
         let data = xlsx.utils.sheet_to_json(worksheet, { range: range });
-        console.log(data)
+
         const mappingDatais = mappingOfExcelData(data)
+        
         const existingInvoiceMap = new Map();
         for (const invoice of await b2bPurchaserModel.find({
             $and: [
@@ -96,11 +96,12 @@ const uploadB2BExcelFile = async (req, res) => {
         )) {
             existingInvoiceMap.set(`${invoice.purchaserGSTIN}-${invoice.invoiceNo}-${invoice.invoiceDate}`, invoice)
         }
-        const results = []
 
+        console
+        .log("existingInvoiceMap is ",existingInvoiceMap)
+        const results = []
         for (let item of mappingDatais) {
             let { invoiceNo, invoiceDate, purchaserGSTIN, purchaserName, totalAmount, gstRate, grandTotal, billType, SGST, CGST, IGST, Cess } = item;
-
             let sendDatais = { invoiceNo, invoiceDate, purchaserGSTIN, purchaserName, totalAmount, gstRate, grandTotal, billType, Cess, userGSTIN: getUserGSTIN }
             const billValidationResult = await billValidation(sendDatais);
             if (billValidationResult.error) {
@@ -133,16 +134,10 @@ const uploadB2BExcelFile = async (req, res) => {
         } else {
             return res.json({ status: false, error: results });
         }
-
-
     } catch (error) {
         console.error('Error processing and saving data:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 };
-
-
-
-
 
 module.exports = { uploadB2BExcelFile };
