@@ -106,16 +106,12 @@ const uploadB2BAExcelFile = async (req, res) => {
             console.error("Error fetching existing invoices:", error);
             return res.status(500).json({ error: 'Internal server error' });
         }
-
-
-
         for (const item of mappingData) {
             const jsDate = item.oldInvoiceDate ? new Date((item.oldInvoiceDate - 25569) * 86400000) : null;
             item.oldInvoiceDate = moment(jsDate).format('DD/MM/YYYY');
             const { invoiceNo, invoiceDate, purchaserGSTIN, purchaserName, totalAmount, gstRate, grandTotal, SGST, CGST, IGST, Cess, oldInvoiceNumber, oldInvoiceDate } = item;
             const key = `${purchaserGSTIN}-${invoiceNo}-${invoiceDate}`;
             if (existingInvoiceMap.has(key)) {
-
                 const filter = { purchaserGSTIN: purchaserGSTIN, invoiceNo: invoiceNo, invoiceDate: invoiceDate };
                 const newDocument = {
                     userGSTIN: getUserGSTIN,

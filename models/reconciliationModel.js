@@ -1,42 +1,67 @@
 const mongoose = require('mongoose');
-const purchaserBillSchema = new mongoose.Schema({
+const reconcilisionSchema = new mongoose.Schema({
     userGSTIN: {
         type: String,
-        required: true,
+
         trim: true,
+    },
+    b2bInvoiceNo: {
+        type: String,
+
+        trim: true,
+    },
+    b2bInvoiceDate: {
+        type: String,
+
+        trim: true,
+    },
+    b2bPurchaserGSTIN: {
+        type: String,
+
+        trim: true,
+    },
+    b2bIGrandTotal: {
+        type: String,
+
+        trim: true,
+    },
+    b2bCess: {
+        type: Number,
+        default: 0
+    },
+    b2bSGST: {
+        type: Number,
+        trim: true,
+        default: 0
+    },
+    b2bCGST: {
+        type: Number,
+        trim: true,
+        default: 0,
+    },
+    b2bIGST: {
+        type: Number,
+        trim: true,
+        default: 0,
     },
     invoiceNo: {
         type: String,
-        required: true,
+
         trim: true,
     },
     invoiceDate: {
         type: String,
-        required: true,
+
         trim: true,
     },
     purchaserGSTIN: {
         type: String,
-        required: true,
-        trim: true,
-    },
-    purchaserName: {
-        type: String,
-        required: true,
-        trim: true,
-    },
-    totalAmount: {
-        type: String,
-        required: true,
-        trim: true,
-    },
-    gstRate: {
-        type: String,
+
         trim: true,
     },
     grandTotal: {
         type: String,
-        required: true,
+
         trim: true,
     },
     totalTaxPaid: {
@@ -62,6 +87,11 @@ const purchaserBillSchema = new mongoose.Schema({
         trim: true,
         default: 0,
     },
+    status: {
+        type: String,
+        trim: true,
+        required: true
+    }
 }, { "timestamps": true });
-module.exports = mongoose.model('purchaserBill', purchaserBillSchema);
-
+const reconcilision = mongoose.model('reconcilision', reconcilisionSchema);
+module.exports = reconcilision;

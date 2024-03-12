@@ -40,7 +40,6 @@ const sendOTP = async (req, res) => {
         res.status(500).json({ status: false, message: 'Error sending OTP' });
     }
 };
-
 const verifyOTP = async (req, res) => {
     const { otp } = req.body;
     try {
@@ -58,7 +57,7 @@ const verifyOTP = async (req, res) => {
         user.otp = undefined;
         await user.save();
 
-        res.status(200).send({ status: true, message: 'OTP verification successful',data:user });
+        res.status(200).send({ status: true, message: 'OTP verification successful', data: user });
     } catch (error) {
         console.error(error);
         res.status(500).json({ status: false, message: 'Error verifying OTP' });

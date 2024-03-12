@@ -6,6 +6,7 @@ const b2bPurchaserModel = require('../models/b2bPurchaserModel');
 const { billValidation } = require("../util/validate");
 
 
+
 function mappingOfExcelData(data) {
     const finalMappingData = []
     const columnMapping = {
@@ -55,7 +56,6 @@ const uploadB2BExcelFile = async (req, res) => {
             return res.status(400).send({ status: false, msg: "Sheet name body parameter is required " })
         }
         const range = req.body.startRowData ? req.body.startRowData - 2 : 5
-
         const getUserGSTIN = fileName.split('_')[1];
         const gstSchema = Joi.string()
             .trim()
@@ -84,7 +84,7 @@ const uploadB2BExcelFile = async (req, res) => {
         let data = xlsx.utils.sheet_to_json(worksheet, { range: range });
 
         const mappingDatais = mappingOfExcelData(data)
-        
+
         const existingInvoiceMap = new Map();
         for (const invoice of await b2bPurchaserModel.find({
             $and: [
@@ -96,9 +96,8 @@ const uploadB2BExcelFile = async (req, res) => {
         )) {
             existingInvoiceMap.set(`${invoice.purchaserGSTIN}-${invoice.invoiceNo}-${invoice.invoiceDate}`, invoice)
         }
-
         console
-        .log("existingInvoiceMap is ",existingInvoiceMap)
+            .log("existingInvoiceMap is ", existingInvoiceMap)
         const results = []
         for (let item of mappingDatais) {
             let { invoiceNo, invoiceDate, purchaserGSTIN, purchaserName, totalAmount, gstRate, grandTotal, billType, SGST, CGST, IGST, Cess } = item;
@@ -139,5 +138,4 @@ const uploadB2BExcelFile = async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 };
-
 module.exports = { uploadB2BExcelFile };
