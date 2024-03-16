@@ -10,6 +10,7 @@ const { createReconciliation } = require('../controllers/reconciliationControlle
 const { uploadExcelFile } = require('../controllers/excelFileController')
 const { excelUpload, imageUpload } = require('../middleware/uplodImageMiddleware')
 const { createLoan } = require('../controllers/loanController')
+const { createPlan, deletePlan, getPlan } = require('../controllers/planController')
 //FOR User route
 router.post('/register', createUser)
 router.post('/send-otp', sendOTP)
@@ -27,7 +28,10 @@ router.post('/upload-b2baexcel', excelUpload, uploadB2BAExcelFile)
 router.post('/loan', createLoan)
 // for reconciliation 
 router.post('/reconciliation', createReconciliation)
-
+// for plan api
+router.post('/plan', createPlan)
+router.get('/plan', getPlan)
+router.delete('/plan/:id', deletePlan)
 router.all("/*", function (req, res) {
   res
     .status(404)

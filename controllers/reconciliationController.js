@@ -8,7 +8,6 @@ const createReconciliation = async (req, res) => {
             console.error('Error: Mongoose connection not established!');
             return res.status(500).json({ error: 'Internal Server Error' });
         }
-
         const [aggregatedData, purchaserBills] = await Promise.all([
             b2bPurchaser.aggregate([
                 {
@@ -22,13 +21,11 @@ const createReconciliation = async (req, res) => {
             ]),
             purchaserBill.find({})
         ]);
-
         const reconciliationDocs = [];
         for (const item of aggregatedData) {
             let status = "ER";
             if (item.purchaserBillData.length > 0) {
                 for (const itemInItem of item.purchaserBillData) {
-
                     if (itemInItem.invoiceNo === item.invoiceNo &&
                         itemInItem.invoiceDate === item.invoiceDate &&
                         itemInItem.purchaserGSTIN === item.purchaserGSTIN &&
@@ -73,13 +70,10 @@ const createReconciliation = async (req, res) => {
                     status
                 });
             }
-
         }
-
         const filteredCollectionTwoData = purchaserBills.filter(item => {
             return !aggregatedData.some(joinedItem => joinedItem.userGSTIN === item.userGSTIN);
         });
-
         for (const item of filteredCollectionTwoData) {
             reconciliationDocs.push({
                 userGSTIN: item.userGSTIN,
@@ -103,5 +97,4 @@ const createReconciliation = async (req, res) => {
         res.status(500).json({ error: 'Internal Server Error' });
     }
 };
-
 module.exports = { createReconciliation };

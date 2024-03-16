@@ -5,7 +5,7 @@ const authToken = process.env.TWILIO_AUTH_TOKEN
 const twilioPhoneNumber = process.env.TWILIO_MOBILE_NUMBER
 const client = new Twilio(accountSid, authToken);
 
-const sendOTP = async (recipientPhoneNumber,otp) => {
+const sendOTP = async (recipientPhoneNumber, otp) => {
     try {
         await client.messages.create({
             body: `Your OTP is: ${otp}`,

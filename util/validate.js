@@ -132,6 +132,18 @@ const loanValidation = (data) => {
     });
     return userSchema.validate(data);
 };
+const planValidation = (data) => {
+    const userSchema = Joi.object({
+        planName: Joi.string().trim().required().messages({
+            'any.required': "planName is required",
+        }),
+
+        planDescription: Joi.string().trim().required().messages({
+            'any.required': "planDescription is required",
+        }),
+    });
+    return userSchema.validate(data);
+};
 // mongoose  ObjectId validation
 const isValidObjectId = function (objectId) {
     return mongoose.Types.ObjectId.isValid(objectId); // returns a boolean
@@ -144,4 +156,4 @@ const isValid = function (value) {
     if (typeof value === "string" && value.trim().length === 0) return false;
     return true;
 };
-module.exports = { userValidation, logInValidation, otpValidation, billValidation, loanValidation, isValidObjectId, isValidRequestBody, isValid }
+module.exports = { userValidation, logInValidation, planValidation, otpValidation, billValidation, loanValidation, isValidObjectId, isValidRequestBody, isValid }
