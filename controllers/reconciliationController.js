@@ -25,7 +25,7 @@ const createReconciliation = async (req, res) => {
         for (const item of aggregatedData) {
             let status = "ER";
             if (item.purchaserBillData.length > 0) {
-             
+
                 for (const itemInItem of item.purchaserBillData) {
                     status = "ER";
                     if (itemInItem.invoiceNo === item.invoiceNo &&
