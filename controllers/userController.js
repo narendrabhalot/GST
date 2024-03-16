@@ -37,7 +37,7 @@ const createUser = async (req, res) => {
 
     try {
         const user = await userModel.create(req.body)
-      return  res.status(201).send({
+        return res.status(201).send({
             status: true,
             msg: 'User registered successfully!',
             data: user
@@ -50,4 +50,21 @@ const createUser = async (req, res) => {
         });
     }
 };
-module.exports = { createUser }
+const updateUser = async (req, res) => {
+    const userGSTIN = req.params.gstin
+    const data = req.body; // Assuming req.body contains the new value for 'isPlan'
+    try {
+        const user = await userModel.findOne({ gstin: userGSTIN });
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        user.isPlan = data.planName
+        await user.save();
+        return res.status(200).json({ message: 'User updated successfully', user });
+    } catch (error) {
+        console.error('Error in updateUser:', error.message);
+        return res.status(500).json({ error: 'Internal Server Error' });
+    }
+};
+
+module.exports = { createUser, updateUser }

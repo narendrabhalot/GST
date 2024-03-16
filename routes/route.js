@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { createUser } = require('../controllers/userController')
+const { createUser, updateUser } = require('../controllers/userController')
 const { sendOTP, verifyOTP } = require('../controllers/authController')
 const { createUserBill } = require('../controllers/billController')
 const { uploadImage, getImage, getImageByDateRange } = require('../controllers/imageUploadController')
@@ -16,6 +16,7 @@ router.post('/register', createUser)
 router.post('/send-otp', sendOTP)
 router.post('/verify-otp', verifyOTP)
 router.post('/userBill/:gstin', createUserBill)
+router.post('/user/:gstin', updateUser)
 // Image Upload route
 router.post('/upload-image/:gst/:userType', imageUpload, uploadImage)
 router.get('/images', getImage)

@@ -17,7 +17,6 @@ const uploadImage = async (req, res) => {
         }
         console.log(req.files)
         for (const file of files) {
-
             if (userType == "seller") {
                 const newImage = new sellerImageModel({
                     image: file.originalname,
@@ -47,11 +46,10 @@ const getImageByDateRange = async (req, res) => {
     let { startDate, endDate } = req.body;
     startDate = moment(startDate, "DD/MM/YYYY").startOf('day').toDate();
     endDate = moment(endDate, "DD/MM/YYYY").endOf('day').toDate();
-
     if (moment(startDate).isAfter(endDate)) {
         return res.send({ status: false, msg: "Start date is greater than end date" });
     }
-    console.log(startDate, endDate);
+
     try {
         const getImageByDate = await imageModel.find({ createdAt: { $gte: startDate, $lte: endDate } }).select({ image: 1, path: 1, _id: 0 })
         console.log(getImageByDate);
