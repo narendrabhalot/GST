@@ -26,7 +26,7 @@ const userValidation = (data) => {
             'any.required': "gstPortalUserName is required",
         }),
         filingPeriod: Joi.string().trim().valid('Monthly', 'Quarterly').required().messages({
-            'any.only': 'Invalid scheme types. Must be Monthly or Quarterly',
+            'any.only': 'Invalid filling period. Must be Monthly or Quarterly',
             'any.required': "filingPeriod is required",
         }),
     });

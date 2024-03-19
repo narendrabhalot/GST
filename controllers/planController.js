@@ -1,6 +1,7 @@
 
 const { planValidation, isValidObjectId } = require('../util/validate')
 const planModel = require('../models/planModel');
+const userModel = require('../models/userModel');
 
 
 const createPlan = async (req, res) => {
@@ -66,6 +67,15 @@ const deletePlan = async (req, res) => {
         });
     }
 };
-module.exports = { createPlan, deletePlan, getPlan }
+
+const getPlanByGSTIN = async (req, res) => {
+    let userGSTIN = req.params.gstin
+    const getUser = await userModel.findOne({ gstin: userGSTIN })
+    if (getUser?.isPlan) {
+        return res.status(200).send({ status: true, msg: getUser.is })
+    }
+
+}
+module.exports = { createPlan, deletePlan, getPlan, getPlanByGSTIN }
 
 
