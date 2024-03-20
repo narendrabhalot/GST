@@ -2,6 +2,7 @@ const b2bPurchaser = require('../models/b2bPurchaserModel');
 const reconcilitionModel = require('../models/reconciliationModel');
 const purchaserBill = require('../models/purchaserBillModel');
 const mongoose = require('mongoose');
+const { isValidObjectId } = require('../util/validate')
 const createReconciliation = async (req, res) => {
     try {
         if (mongoose.connection.readyState !== 1) {
@@ -110,7 +111,7 @@ const getReconciliationByGSTIN = async (req, res) => {
         }
         return res.status(200).json({
             status: true,
-            count: reconciliationRecords
+            data: reconciliationRecords
         });
     } catch (error) {
         console.error("Error retrieving reconciliation records:", error);
