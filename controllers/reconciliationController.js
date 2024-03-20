@@ -100,4 +100,23 @@ const createReconciliation = async (req, res) => {
         res.status(500).json({ error: 'Internal Server Error' });
     }
 };
-module.exports = { createReconciliation };
+
+const getReconciliationByGSTIN = async (req, res) => {
+    try {
+        const { gstin: userGSTIN } = req.params;
+        const reconciliationRecords = await reconcilitionModel.find({ userGSTIN }).lean();
+        if (!reconciliationRecords.length) {
+            return res.status(404).json({ status: false, message: "No reconciliation record found" });
+        }
+        return res.status(200).json({
+            status: true,
+            count: reconciliationRecords
+        });
+    } catch (error) {
+        console.error("Error retrieving reconciliation records:", error);
+        return res.status(500).json({ status: false, message: "Internal server error" });
+    }
+};
+
+
+module.exports = { createReconciliation, getReconciliationByGSTIN };
