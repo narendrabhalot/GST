@@ -4,11 +4,15 @@ const sendSMS = require('../util/otp');
 const { logInValidation, otpValidation } = require('../util/validate')
 // const otplib = require('otplib');
 
-const otpGenerator = require('otp-generator')
+const otpGenerator = require('otp-generator');
 
 function generateOTP() {
-    const otp = otpGenerator.generate(6, { upperCaseAlphabets: false, specialChars: false });
-    return otp
+    const digits = '0123456789';
+    let otp = '';
+    for (let i = 0; i < 6; i++) {
+        otp += digits[Math.floor(Math.random() * 10)];
+    }
+    return otp;
 }
 const sendOTP = async (req, res) => {
 

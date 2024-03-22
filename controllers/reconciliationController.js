@@ -1,6 +1,7 @@
 const b2bPurchaser = require('../models/b2bPurchaserModel');
 const reconcilitionModel = require('../models/reconciliationModel');
 const purchaserBill = require('../models/purchaserBillModel');
+const moment = require('moment');
 const mongoose = require('mongoose');
 const { isValidObjectId } = require('../util/validate')
 const createReconciliation = async (req, res) => {
@@ -105,19 +106,42 @@ const createReconciliation = async (req, res) => {
 const getReconciliationByGSTIN = async (req, res) => {
     try {
         const { gstin: userGSTIN } = req.params;
-        const reconciliationRecords = await reconcilitionModel.find({ userGSTIN }).lean();
-        if (!reconciliationRecords.length) {
+        function getFinancialYearStartDate() {
+            const currentDate = moment();
+            const fiscalMonth = 2; // Assuming fiscal year starts in March (0-indexed)
+            if (fiscalMonth <= currentDate.month()) {
+                return moment([currentDate.year() - 1, currentDate.month(), 31]).format('DD/MM/YYYY');
+            } else {
+                return moment([currentDate.year(), currentDate.month(), 31]).format('DD/MM/YYYY');
+            }
+        }
+        let startDate = getFinancialYearStartDate();
+        startDate = moment(startDate, 'DD/MM/YYYY');
+        const endDate = moment().format('DD/MM/YYYY');
+        const reconciliationRecords = await reconcilitionModel.find({ userGSTIN });
+        const filteredReconciliationRecords = reconciliationRecords.filter(item => {
+            try {
+                const itemDate = moment(item.b2bInvoiceDate, 'DD/MM/YYYY');
+
+                return itemDate.isValid() && itemDate.isAfter(startDate);
+
+            } catch (error) {
+                console.error(`Error parsing invoice date for item: ${item.b2bInvoiceDate}`, error);
+                return false;
+            }
+        });
+        if (!filteredReconciliationRecords.length) {
             return res.status(404).json({ status: false, message: "No reconciliation record found" });
         }
+
         return res.status(200).json({
             status: true,
-            data: reconciliationRecords
+            data: filteredReconciliationRecords
         });
     } catch (error) {
         console.error("Error retrieving reconciliation records:", error);
         return res.status(500).json({ status: false, message: "Internal server error" });
     }
 };
-
 
 module.exports = { createReconciliation, getReconciliationByGSTIN };
