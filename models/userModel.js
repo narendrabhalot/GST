@@ -38,7 +38,7 @@ const registrationSchema = new mongoose.Schema({
         required: true,
     },
     isPlan: {
-        type: String,
+        type: Object,
         default: false
 
     },

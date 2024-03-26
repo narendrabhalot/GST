@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { createUser, updateUser } = require('../controllers/userController')
+const { createUser, updateUserPlanByGSTIN } = require('../controllers/userController')
 const { sendOTP, verifyOTP } = require('../controllers/authController')
 const { createUserBill } = require('../controllers/billController')
 const { uploadImage, getImage, getImageByDateRange } = require('../controllers/imageUploadController')
@@ -10,13 +10,13 @@ const { createReconciliation, getReconciliationByGSTIN } = require('../controlle
 const { uploadExcelFile } = require('../controllers/excelFileController')
 const { excelUpload, imageUpload } = require('../middleware/uplodImageMiddleware')
 const { createLoan } = require('../controllers/loanController')
-const { createPlan, deletePlan, getPlan } = require('../controllers/planController')
+const { createPlan, deletePlan, getPlan, getMyPlan } = require('../controllers/planController')
 //FOR User route
 router.post('/register', createUser)
 router.post('/send-otp', sendOTP)
 router.post('/verify-otp', verifyOTP)
 router.post('/userBill/:gstin', createUserBill)
-router.post('/user/:gstin', updateUser)
+router.post('/user/:gstin', updateUserPlanByGSTIN)
 // Image Upload route
 router.post('/upload-image/:gst/:userType', imageUpload, uploadImage)
 router.get('/images', getImage)
@@ -33,6 +33,7 @@ router.get('/reconciliation/:gstin', getReconciliationByGSTIN)
 // for plan api
 router.post('/plan', createPlan)
 router.get('/plan', getPlan)
+router.get('/myPlan/:gstin', getMyPlan)
 router.delete('/plan/:id', deletePlan)
 router.all("/*", function (req, res) {
   res

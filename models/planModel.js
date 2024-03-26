@@ -10,10 +10,13 @@ const createPlan = new mongoose.Schema({
         type: String,
         default: null
     },
+    tabs: {
+        type: Array,
+        required: true
+    },
     planDescription: {
         type: String,
         required: true
     },
-
 }, { timestamps: true })
 module.exports = mongoose.model('plan', createPlan)

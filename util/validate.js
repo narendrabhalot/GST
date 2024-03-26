@@ -133,16 +133,28 @@ const loanValidation = (data) => {
     return userSchema.validate(data);
 };
 const planValidation = (data) => {
-    const userSchema = Joi.object({
-        planName: Joi.string().trim().required().messages({
-            'any.required': "planName is required",
-        }),
-
-        planDescription: Joi.string().trim().required().messages({
-            'any.required': "planDescription is required",
-        }),
+    const planSchema = Joi.object({
+        planName: Joi.string()
+            .trim()
+            .required()
+            .messages({
+                'any.required': "Please enter a name for your plan.",
+            }),
+        tabs: Joi.array()
+            .required()
+            .messages({
+                'array.base': "Tabs must be of type array",
+                'any.required': "Tabs are required for your plan.",
+            }),
+        planDescription: Joi.string()
+            .trim()
+            .required()
+            .messages({
+                'any.required': "Please provide a description for your plan.", // Custom message
+            }),
     });
-    return userSchema.validate(data);
+
+    return planSchema.validate(data);
 };
 // mongoose  ObjectId validation
 const isValidObjectId = function (objectId) {

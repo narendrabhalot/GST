@@ -1,5 +1,7 @@
+const planModel = require('../models/planModel');
 const userModel = require('../models/userModel');
 const { userValidation } = require('../util/validate')
+const moment = require('moment')
 const createUser = async (req, res) => {
     const value = await userValidation(req.body)
     // console.log(value)
@@ -50,15 +52,21 @@ const createUser = async (req, res) => {
         });
     }
 };
-const updateUser = async (req, res) => {
+const updateUserPlanByGSTIN = async (req, res) => {
     const userGSTIN = req.params.gstin
-    const data = req.body; // Assuming req.body contains the new value for 'isPlan'
+    const { planName } = req.body;  // Assuming req.body contains the new value for 'isPlan'
     try {
         const user = await userModel.findOne({ gstin: userGSTIN });
+
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }
-        user.isPlan = data.planName
+        let obj = {
+            isActive: true,
+            isPurchaseDate: moment().format('DD/MM/YYYY'),
+            planData: planName
+        }
+        user.isPlan = obj
         await user.save();
         return res.status(200).json({ message: 'User updated successfully', user });
     } catch (error) {
@@ -67,4 +75,4 @@ const updateUser = async (req, res) => {
     }
 };
 
-module.exports = { createUser, updateUser }
+module.exports = { createUser, updateUserPlanByGSTIN }

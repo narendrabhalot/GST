@@ -133,7 +133,6 @@ const getReconciliationByGSTIN = async (req, res) => {
         if (!filteredReconciliationRecords.length) {
             return res.status(404).json({ status: false, message: "No reconciliation record found" });
         }
-
         return res.status(200).json({
             status: true,
             data: filteredReconciliationRecords
