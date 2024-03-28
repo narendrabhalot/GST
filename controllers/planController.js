@@ -4,19 +4,33 @@ const planModel = require('../models/planModel');
 const userModel = require('../models/userModel');
 const moment = require('moment')
 
-
 function checkPlanExpiration(purchaseDate) {
-    const expiryDates = [
-        moment().set({ 'month': 0, 'date': 1 }),
-        moment().set({ 'month': 3, 'date': 1 }),
-        moment().set({ 'month': 6, 'date': 1 }),
-        moment().set({ 'month': 9, 'date': 1 }),
-    ];
 
-    const purchaseDateMoment = moment(purchaseDate, 'DD/MM/YYYY').format('YYYY-MM-DD')
-    const nextExpiryDate = expiryDates.find(expiryDate => expiryDate.isAfter(purchaseDateMoment));
-    return moment(nextExpiryDate).format('DD/MM/YYYY')
+
+
+    try {
+        const purchaseDateMoment = moment(purchaseDate, 'DD/MM/YYYY');
+        console.log(purchaseDateMoment)
+        const expiryDates = [
+            moment().set({ 'month': 0, 'date': 1 }),
+            moment().set({ 'month': 3, 'date': 1 }),
+            moment().set({ 'month': 6, 'date': 1 }),
+            moment().set({ 'month': 9, 'date': 1 }),
+        ];
+        const nextExpiryDate = expiryDates.find(date => date.isAfter(purchaseDateMoment));
+        console.log(nextExpiryDate)
+        if (!nextExpiryDate) {
+            return null;
+        }
+
+
+        return nextExpiryDate.format('DD/MM/YYYY');
+    } catch (error) {
+        console.error('Error checking plan expiration:', error);
+        throw error;
+    }
 }
+
 const createPlan = async (req, res) => {
     const value = await planValidation(req.body)
     console.log(value)
@@ -60,24 +74,28 @@ const getPlan = async (req, res) => {
     }
 };
 const deletePlan = async (req, res) => {
-    let planId = req.params.id;
+    const planId = req.params.id;
     if (!isValidObjectId(planId)) {
-        return res.status(404).send({ status: false, msg: "valid plan id required" });
+        return res.status(404).send({ status: false, msg: "Valid plan ID required." });
     }
+
     try {
         const deletedPlan = await planModel.findOneAndDelete({ _id: planId });
         if (!deletedPlan) {
-            return res.status(404).send({ status: false, msg: `No plan exists with that ${planId}  ID` });
+            return res.status(404).send({ status: false, msg: `No plan found with ID: ${planId}` });
         }
+
+
         return res.status(200).send({ status: true, msg: 'Plan deleted successfully!' });
     } catch (error) {
-        res.status(500).json({
+        return res.status(500).json({
             status: false,
             message: 'Error deleting plan!',
             error: error.message
         });
     }
 };
+
 const getPlanByGSTIN = async (req, res) => {
     let userGSTIN = req.params.gstin
     const getUser = await userModel.findOne({ gstin: userGSTIN }).lean()
@@ -87,29 +105,31 @@ const getPlanByGSTIN = async (req, res) => {
 }
 const getMyPlan = async (req, res) => {
     try {
-        let userGSTIN = req.params.gstin;
-        const getUser = await userModel.findOne({ gstin: userGSTIN })
+        const userGSTIN = req.params.gstin;
+
+
+
+        const getUser = await userModel.findOne({ gstin: userGSTIN });
 
         // Check if user exists and has an isPlan object
         if (!getUser || !getUser.isPlan) {
             return res.status(400).send({ status: false, msg: "Plan not found for this user." });
         }
-
-        const isActive = getUser.isPlan.isActive === true; // Non-strict comparison
-
+        const isActive = getUser.isPlan.isActive === true;
         if (isActive) {
-            let getpurchasePlanDate = getUser.isPlan.isPurchaseDate;
-            let getExpireDate = checkPlanExpiration(getpurchasePlanDate); // Assuming checkPlanExpiration is defined
-            console.log(getExpireDate);
+            const getpurchasePlanDate = getUser.isPlan.isPurchaseDate;
+            const getExpireDate = await checkPlanExpiration(getpurchasePlanDate);
+            console.log(typeof getExpireDate);
+
             if (getExpireDate === moment().format('DD/MM/YYYY')) {
                 await userModel.findOneAndUpdate(
                     { gstin: userGSTIN },
                     { $set: { "isPlan.isActive": false } }
                 );
-                return res.status(400).send({ status: false, msg: "Plan has expireddsgf." });
+                return res.status(400).send({ status: false, msg: "Plan has expired." });
             } else {
                 console.log('Plan is still active');
-                return res.json({ status: true, msg: "Plan is active." }); // Assuming desired success response
+                return res.json({ status: true, msg: "Plan is active.", plan: getUser.isPlan });
             }
         } else {
             return res.status(400).send({ status: false, msg: "Plan is not active." });

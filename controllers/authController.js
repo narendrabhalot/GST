@@ -5,7 +5,6 @@ const { logInValidation, otpValidation } = require('../util/validate')
 // const otplib = require('otplib');
 
 const otpGenerator = require('otp-generator');
-
 function generateOTP() {
     const digits = '0123456789';
     let otp = '';
