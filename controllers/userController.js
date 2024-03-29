@@ -54,17 +54,20 @@ const createUser = async (req, res) => {
 };
 const updateUserPlanByGSTIN = async (req, res) => {
     const userGSTIN = req.params.gstin
-    const { planName } = req.body;  // Assuming req.body contains the new value for 'isPlan'
+    const { planName,tabs } = req.body;  // Assuming req.body contains the new value for 'isPlan'
+    if (!planName || !tabs) {
+        return res.send({ status: false, msg: "planName or tabs reuired" })
+    }
     try {
         const user = await userModel.findOne({ gstin: userGSTIN });
-
         if (!user) {
             return res.status(404).json({ error: 'User not found' });
         }
         let obj = {
             isActive: true,
             isPurchaseDate: moment().format('DD/MM/YYYY'),
-            planData: planName
+            planData: planName,
+            tabs:tabs
         }
         user.isPlan = obj
         await user.save();

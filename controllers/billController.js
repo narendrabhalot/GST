@@ -97,4 +97,29 @@ const createUserBill = async (req, res) => {
     }
 
 };
+
+
+
+// const getBillByDateRangeAndUserGSTIN = async (req, res) => {
+//     try {
+//         // let startDate = req.body.startDate
+//         // let endDate = req.body.endDate
+//         // let get 
+//         let { startDate, endDate, userGSTINList } = req.body
+//         let billType = req.params.billType
+//         if (billType == "seller") {
+//             for (let item of req.bod)
+//                 const getData = await sellerBillModel.aggregate([
+//          .find({ userGSTIN: item })
+//                 ])
+//         } else {
+
+//         }
+
+//     } catch (err) {
+//         console.log(err.message)
+
+//     }
+
+// }
 module.exports = { createUserBill }

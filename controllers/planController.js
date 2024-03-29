@@ -5,9 +5,6 @@ const userModel = require('../models/userModel');
 const moment = require('moment')
 
 function checkPlanExpiration(purchaseDate) {
-
-
-
     try {
         const purchaseDateMoment = moment(purchaseDate, 'DD/MM/YYYY');
         console.log(purchaseDateMoment)
@@ -22,8 +19,6 @@ function checkPlanExpiration(purchaseDate) {
         if (!nextExpiryDate) {
             return null;
         }
-
-
         return nextExpiryDate.format('DD/MM/YYYY');
     } catch (error) {
         console.error('Error checking plan expiration:', error);
