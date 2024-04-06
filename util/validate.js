@@ -140,21 +140,49 @@ const planValidation = (data) => {
             .messages({
                 'any.required': "Please enter a name for your plan.",
             }),
+        subPlans: Joi.required()
+            .messages({
+                'any.required': "Please enter a subPlans for your plan.",
+            }),
+
+    });
+
+    return planSchema.validate(data);
+};
+const subPlanValidation = (data) => {
+    const subPlanSchema = Joi.object({
+        planId: Joi.string()
+            .trim()
+            .required()
+            .messages({
+                'any.required': "Please enter a planId .",
+            }),
+        subPlanName: Joi.string()
+            .trim()
+            .required()
+            .messages({
+                'any.required': "Please enter a name for your sub-plan.",
+            }),
         tabs: Joi.array()
             .required()
             .messages({
                 'array.base': "Tabs must be of type array",
-                'any.required': "Tabs are required for your plan.",
+                'any.required': "Tabs are required for your sub-plan.",
             }),
-        planDescription: Joi.string()
+        subPlanPrice: Joi
+            .required()
+            .messages({
+                'any.required': "Price  are required for your sub-plan.",
+            }),
+        subPlanDescription: Joi.string()
             .trim()
             .required()
             .messages({
-                'any.required': "Please provide a description for your plan.", // Custom message
+                'any.required': "Please provide a description for your sub-plan.", // Custom message
             }),
     });
 
-    return planSchema.validate(data);
+    return subPlanSchema.validate(data);
 };
 // mongoose  ObjectId validation
 const isValidObjectId = function (objectId) {
@@ -168,4 +196,4 @@ const isValid = function (value) {
     if (typeof value === "string" && value.trim().length === 0) return false;
     return true;
 };
-module.exports = { userValidation, logInValidation, planValidation, otpValidation, billValidation, loanValidation, isValidObjectId, isValidRequestBody, isValid }
+module.exports = { userValidation, logInValidation, planValidation, otpValidation, subPlanValidation, billValidation, loanValidation, isValidObjectId, isValidRequestBody, isValid }

@@ -122,9 +122,7 @@ const getReconciliationByGSTIN = async (req, res) => {
         const filteredReconciliationRecords = reconciliationRecords.filter(item => {
             try {
                 const itemDate = moment(item.b2bInvoiceDate, 'DD/MM/YYYY');
-
                 return itemDate.isValid() && itemDate.isAfter(startDate);
-
             } catch (error) {
                 console.error(`Error parsing invoice date for item: ${item.b2bInvoiceDate}`, error);
                 return false;
@@ -142,5 +140,4 @@ const getReconciliationByGSTIN = async (req, res) => {
         return res.status(500).json({ status: false, message: "Internal server error" });
     }
 };
-
 module.exports = { createReconciliation, getReconciliationByGSTIN };

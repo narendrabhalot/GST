@@ -11,7 +11,7 @@ const imageStorage = multer.diskStorage({
         const year = new Date().getFullYear();
         const monthName = new Date().toLocaleString('default', { month: 'long' });
         const uploadPath = path.join('uploads', gstin, String(year), monthName);
-        
+
         // Create the directory if it doesn't exist
         fs.mkdirSync(uploadPath, { recursive: true });
 
@@ -24,8 +24,6 @@ const imageStorage = multer.diskStorage({
 });
 const uploadImage = multer({ storage: imageStorage });
 const imageUpload = uploadImage.array("image");
-
-
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, path.join(__dirname, '..', 'uploads')); // Destination folder

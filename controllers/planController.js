@@ -1,6 +1,8 @@
 
 const { planValidation, isValidObjectId } = require('../util/validate')
-const planModel = require('../models/planModel');
+const { default: mongoose } = require("mongoose");
+const planModel = require('../models/planModel'); // Assuming planModel is in a separate file
+const subPlanModel = require('../models/subPlanModel'); // Import the SubPlan model
 const userModel = require('../models/userModel');
 const moment = require('moment')
 
@@ -27,16 +29,25 @@ function checkPlanExpiration(purchaseDate) {
 }
 
 const createPlan = async (req, res) => {
-    const value = await planValidation(req.body)
-    console.log(value)
-    if (value.error) {
-
-        return res.status(400).send({
-            status: false,
-            msg: value.error.message
-        })
-    }
     try {
+        const value = await planValidation(req.body)
+        console.log(value)
+        if (value.error) {
+            return res.status(400).send({
+                status: false,
+                msg: value.error.message
+            })
+        }
+        for (let id of req.body.subPlans) {
+            if (!isValidObjectId(id)) {
+                return res.status(404).send({ status: false, msg: "Valid sub plan object iD required." });
+            }
+            let checkIdExist = await subPlanModel.findById(id)
+            if (!checkIdExist) {
+                return res.status(404).send({ status: false, msg: `No sub-plan exists for this(${id}) object ID.` });
+            }
+
+        }
         const plan = await planModel.create(req.body)
         return res.status(201).send({
             status: true,
@@ -58,7 +69,7 @@ const getPlan = async (req, res) => {
         if (getPlan.length > 0) {
             return res.status(200).send({ status: true, planData: getPlan });
         } else {
-            return res.status(200).send({ status: fals, msg: `No plan available` });
+            return res.status(200).send({ status: false, msg: `No plan available` });
         }
     } catch (error) {
         res.status(500).json({
@@ -68,6 +79,7 @@ const getPlan = async (req, res) => {
         });
     }
 };
+
 const deletePlan = async (req, res) => {
     const planId = req.params.id;
     if (!isValidObjectId(planId)) {
@@ -90,7 +102,22 @@ const deletePlan = async (req, res) => {
         });
     }
 };
-
+const getPlanById = async (req, res) => {
+    try {
+        const id = req.params.id;
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).send({ status: false, msg: 'Invalid plan ID format' });
+        }
+        const plan = await planModel.find({ _id: id }).populate("subPlans")
+        if (!plan) {
+            return res.status(404).send({ status: false, msg: 'Plan not found' });
+        }
+        return res.status(200).send({ status: true, data: plan });
+    } catch (error) {
+        console.error(error); // Log the error for debugging
+        return res.status(500).send({ status: false, msg: 'Internal server error' });
+    }
+};
 const getPlanByGSTIN = async (req, res) => {
     let userGSTIN = req.params.gstin
     const getUser = await userModel.findOne({ gstin: userGSTIN }).lean()
@@ -101,12 +128,7 @@ const getPlanByGSTIN = async (req, res) => {
 const getMyPlan = async (req, res) => {
     try {
         const userGSTIN = req.params.gstin;
-
-
-
         const getUser = await userModel.findOne({ gstin: userGSTIN });
-
-        // Check if user exists and has an isPlan object
         if (!getUser || !getUser.isPlan) {
             return res.status(400).send({ status: false, msg: "Plan not found for this user." });
         }
@@ -114,7 +136,6 @@ const getMyPlan = async (req, res) => {
         if (isActive) {
             const getpurchasePlanDate = getUser.isPlan.isPurchaseDate;
             const getExpireDate = await checkPlanExpiration(getpurchasePlanDate);
-            console.log(typeof getExpireDate);
 
             if (getExpireDate === moment().format('DD/MM/YYYY')) {
                 await userModel.findOneAndUpdate(
@@ -134,7 +155,6 @@ const getMyPlan = async (req, res) => {
         return res.status(500).send({ status: false, msg: "Internal server error." });
     }
 };
-
-module.exports = { createPlan, deletePlan, getPlan, getPlanByGSTIN, getMyPlan }
+module.exports = { createPlan, deletePlan, getPlan, getPlanByGSTIN, getPlanById, getMyPlan }
 
 

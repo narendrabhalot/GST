@@ -1,6 +1,7 @@
 const userModel = require('../models/userModel')
 const sellerBillModel = require('../models/sellerBillModel')
 const purchaserBillModel = require('../models/purchaserBillModel')
+const moment = require('moment')
 const { billValidation, isValidRequestBody } = require("../util/validate")
 const createUserBill = async (req, res) => {
     let { invoiceNo, invoiceDate, sellerGSTIN, purchaserGSTIN, sellerName, purchaserName, totalAmount, gstRate, grandTotal, billType, Cess } = req.body;
@@ -97,29 +98,37 @@ const createUserBill = async (req, res) => {
     }
 
 };
+const getBillByDateRangeAndUserGSTIN = async (req, res) => {
+    try {
+        const { startDate, endDate, userGSTINList } = req.body; // Destructure directly
+        const billType = req.params.billType;
+        if (!startDate || !endDate || !userGSTINList) {
+            return res.status(400).json({ error: 'Missing required data: startDate, endDate, or userGSTINList' });
+        }
+        const bills = []; // Store retrieved bills
 
+        for (const userGSTIN of userGSTINList) {
+            const billModel = billType === "seller" ? sellerBillModel : purchaserBillModel;
+            const formattedStartDate = startDate // Optional date validation
+            const formattedEndDate = endDate   // Optional date validation
 
+            const billData = await billModel.aggregate([
+                {
+                    $match: {
+                        userGSTIN,
+                        invoiceDate: { $gte: formattedStartDate, $lte: formattedEndDate }
+                    }
+                }
+            ]);
 
-// const getBillByDateRangeAndUserGSTIN = async (req, res) => {
-//     try {
-//         // let startDate = req.body.startDate
-//         // let endDate = req.body.endDate
-//         // let get 
-//         let { startDate, endDate, userGSTINList } = req.body
-//         let billType = req.params.billType
-//         if (billType == "seller") {
-//             for (let item of req.bod)
-//                 const getData = await sellerBillModel.aggregate([
-//          .find({ userGSTIN: item })
-//                 ])
-//         } else {
+            bills.push(...billData); // Efficiently append bills
+        }
 
-//         }
+        res.status(200).json({ bills }); // Send retrieved bills in response
+    } catch (error) {
+        console.error('Error retrieving bills:', error.message);
+        res.status(500).json({ error: 'Internal Server Error' }); // Handle errors gracefully
+    }
+};
 
-//     } catch (err) {
-//         console.log(err.message)
-
-//     }
-
-// }
-module.exports = { createUserBill }
+module.exports = { createUserBill, getBillByDateRangeAndUserGSTIN }
