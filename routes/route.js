@@ -10,7 +10,7 @@ const { createReconciliation, getReconciliationByGSTIN } = require('../controlle
 const { uploadExcelFile } = require('../controllers/excelFileController')
 const { excelUpload, imageUpload } = require('../middleware/uplodImageMiddleware')
 const { createLoan } = require('../controllers/loanController')
-const { createPlan, deletePlan, getPlan, getMyPlan, getPlanById ,getPlanWithSubPlan} = require('../controllers/planController')
+const { createPlan, deletePlan, getPlan, getMyPlan, getPlanById, getPlanWithSubPlan } = require('../controllers/planController')
 const { createSubPlan } = require('../controllers/subPlanController')
 //FOR User route
 router.post('/register', createUser)
@@ -38,7 +38,7 @@ router.get('/reconciliation/:gstin', getReconciliationByGSTIN)
 // for plan api
 router.post('/plan', createPlan)
 router.get('/plan', getPlan)
-router.get('/planamdsubplan', getPlanWithSubPlan)
+router.get('/plan-subplan', getPlanWithSubPlan)
 router.get('/plan/:id', getPlanById)
 router.get('/myPlan/:gstin', getMyPlan)
 router.delete('/plan/:id', deletePlan)
