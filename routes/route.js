@@ -38,7 +38,7 @@ router.get('/reconciliation/:gstin', getReconciliationByGSTIN)
 // for plan api
 router.post('/plan', createPlan)
 router.get('/plan', getPlan)
-router.get('/plantithsubplan', getPlanWithSubPlan)
+router.get('/planamdsubplan', getPlanWithSubPlan)
 router.get('/plan/:id', getPlanById)
 router.get('/myPlan/:gstin', getMyPlan)
 router.delete('/plan/:id', deletePlan)
