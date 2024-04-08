@@ -12,9 +12,7 @@ const createSubPlan = async (req, res) => {
                 msg: value.error.message
             })
         }
-        if (!isValidObjectId(planId)) {
-            return res.status(404).send({ status: false, msg: "Valid plan Object ID required." });
-        }
+      
         const plans = await subPlanModel.create(req.body)
         return res.status(201).send({
             status: true,

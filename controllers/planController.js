@@ -125,6 +125,20 @@ const getPlanByGSTIN = async (req, res) => {
         return res.status(200).send({ status: true, msg: getUser.is })
     }
 }
+const getPlanWithSubPlan = async (req, res) => {
+    try {
+        // Find all plans and populate their subPlans field
+        const plans = await planModel.find().populate('subPlans').exec();
+
+        res.json(plans);
+    } catch (error) {
+        console.error('Error retrieving plans:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+};
+
+
+
 const getMyPlan = async (req, res) => {
     try {
         const userGSTIN = req.params.gstin;
@@ -155,6 +169,6 @@ const getMyPlan = async (req, res) => {
         return res.status(500).send({ status: false, msg: "Internal server error." });
     }
 };
-module.exports = { createPlan, deletePlan, getPlan, getPlanByGSTIN, getPlanById, getMyPlan }
+module.exports = { createPlan, deletePlan, getPlan, getPlanByGSTIN, getPlanById, getMyPlan, getPlanWithSubPlan }
 
 

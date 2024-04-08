@@ -151,12 +151,7 @@ const planValidation = (data) => {
 };
 const subPlanValidation = (data) => {
     const subPlanSchema = Joi.object({
-        planId: Joi.string()
-            .trim()
-            .required()
-            .messages({
-                'any.required': "Please enter a planId .",
-            }),
+
         subPlanName: Joi.string()
             .trim()
             .required()
