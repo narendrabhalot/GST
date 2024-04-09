@@ -103,22 +103,26 @@ const createReconciliation = async (req, res) => {
     }
 };
 
+
 const getReconciliationByGSTIN = async (req, res) => {
     try {
-        const { gstin: userGSTIN } = req.params;
+        const gstin = req.params.gstin
         function getFinancialYearStartDate() {
             const currentDate = moment();
-            const fiscalMonth = 2; // Assuming fiscal year starts in March (0-indexed)
-            if (fiscalMonth <= currentDate.month()) {
-                return moment([currentDate.year() - 1, currentDate.month(), 31]).format('DD/MM/YYYY');
+            const financialMonth = 2;
+            console.log(currentDate.month())
+            if (financialMonth <= currentDate.month()) {
+                return moment([currentDate.year(), currentDate.month(), 1]).format('DD/MM/YYYY');
             } else {
-                return moment([currentDate.year(), currentDate.month(), 31]).format('DD/MM/YYYY');
+                return moment([currentDate.year() - 1, currentDate.month(), 1]).format('DD/MM/YYYY');
             }
         }
         let startDate = getFinancialYearStartDate();
+        console.log(startDate)
         startDate = moment(startDate, 'DD/MM/YYYY');
+        console.log(startDate)
         const endDate = moment().format('DD/MM/YYYY');
-        const reconciliationRecords = await reconcilitionModel.find({ userGSTIN });
+        const reconciliationRecords = await reconcilitionModel.find({ userGSTIN: gstin });
         const filteredReconciliationRecords = reconciliationRecords.filter(item => {
             try {
                 const itemDate = moment(item.b2bInvoiceDate, 'DD/MM/YYYY');
