@@ -1,8 +1,15 @@
 const compositeModel = require('../models/compositeModel')
 
 const createComposite = async (req, res) => {
-
     try {
+        const { totel } = req.body
+        if (!totel) {
+            return res.status(400).send({
+                status: false,
+                msg: 'totel required',
+
+            });
+        }
         const composite = await compositeModel.create(req.body)
         return res.status(201).send({
             status: true,
