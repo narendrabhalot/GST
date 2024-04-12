@@ -91,8 +91,6 @@ const deletePlan = async (req, res) => {
         if (!deletedPlan) {
             return res.status(404).send({ status: false, msg: `No plan found with ID: ${planId}` });
         }
-
-
         return res.status(200).send({ status: true, msg: 'Plan deleted successfully!' });
     } catch (error) {
         return res.status(500).json({
@@ -127,9 +125,8 @@ const getPlanByGSTIN = async (req, res) => {
 }
 const getPlanWithSubPlan = async (req, res) => {
     try {
-        // Find all plans and populate their subPlans field
+        
         const plans = await planModel.find().populate('subPlans').exec();
-
         res.json(plans);
     } catch (error) {
         console.error('Error retrieving plans:', error);

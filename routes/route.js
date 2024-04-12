@@ -12,6 +12,10 @@ const { excelUpload, imageUpload } = require('../middleware/uplodImageMiddleware
 const { createLoan } = require('../controllers/loanController')
 const { createPlan, deletePlan, getPlan, getMyPlan, getPlanById, getPlanWithSubPlan } = require('../controllers/planController')
 const { createSubPlan } = require('../controllers/subPlanController')
+const{createComposite}=require('../controllers/compositeController')
+
+
+
 //FOR User route
 router.post('/register', createUser)
 router.post('/send-otp', sendOTP)
@@ -42,9 +46,10 @@ router.get('/plan-subplan', getPlanWithSubPlan)
 router.get('/plan/:id', getPlanById)
 router.get('/myPlan/:gstin', getMyPlan)
 router.delete('/plan/:id', deletePlan)
-
 // for subPlan  router  
 router.post('/subPlan', createSubPlan)
+// for composite API
+router.post('/composite', createComposite)
 
 router.all("/*", function (req, res) {
   res
