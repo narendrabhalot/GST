@@ -39,7 +39,7 @@ const uploadImage = async (req, res) => {
     }
 };
 const getImage = async (req, res) => {
-    const images = await imageModel.find()
+    const images = await sellerImageModel.find()
     return res.status(200).send({ status: true, data: images })
 }
 const getImageByDateRange = async (req, res) => {

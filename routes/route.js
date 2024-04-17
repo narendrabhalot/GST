@@ -12,7 +12,7 @@ const { excelUpload, imageUpload } = require('../middleware/uplodImageMiddleware
 const { createLoan } = require('../controllers/loanController')
 const { createPlan, deletePlan, getPlan, getMyPlan, getPlanById, getPlanWithSubPlan } = require('../controllers/planController')
 const { createSubPlan } = require('../controllers/subPlanController')
-const{createComposite}=require('../controllers/compositeController')
+const { createComposite } = require('../controllers/compositeController')
 
 
 
