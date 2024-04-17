@@ -24,10 +24,11 @@ app.use(session({
     saveUninitialized: true,
 }));
 app.use(cors({
-    origin: 'http://104.237.8.163:3000',
+    origin: 'https://gst-od9w.onrender.com',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    credentials: true, // Enable if you need to send cookies with the request
+    credentials: true
 }));
+
 
 app.use(express.static(path.join(__dirname, 'uploads')));
 app.use("/", route);
