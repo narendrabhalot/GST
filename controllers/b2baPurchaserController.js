@@ -88,9 +88,7 @@ const uploadB2BAExcelFile = async (req, res) => {
         let data = xlsx.utils.sheet_to_json(worksheet, { range: 6, dateNF: 'DD/MM/YYYY' });
         console.log(data)
         const mappingData = mappingOfExcelData(data);
-
         const existingInvoiceMap = new Map();
-
         try {
             const existingInvoices = await b2bPurchaserModel.find({
                 $and: [

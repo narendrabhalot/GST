@@ -12,9 +12,7 @@ require('dotenv').config();
 const dbConnectionString = process.env.DB_CONNECTION_STRING;
 const sessionSecret = process.env.SESSION_SECRET;
 const app = express();
-
 const route = require("./routes/route");
-
 app.use(bodyParser.json());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
