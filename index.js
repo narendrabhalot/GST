@@ -22,7 +22,7 @@ app.use(session({
     saveUninitialized: true,
 }));
 app.use(cors({
-    origin: 'https://gst-od9w.onrender.com',
+    origin: 'http://localhost:3001',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true
 }));
