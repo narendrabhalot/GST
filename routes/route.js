@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { createUser, updateUserPlanByGSTIN } = require('../controllers/userController')
+const { creatAdmin, adminLogin } = require('../controllers/adminController')
 const { sendOTP, verifyOTP } = require('../controllers/authController')
 const { createUserBill, getBillByDateRangeAndUserGSTIN } = require('../controllers/billController')
 const { uploadImage, getImage, getImageByDateRange } = require('../controllers/imageUploadController')
@@ -22,6 +23,11 @@ router.post('/send-otp', sendOTP)
 router.post('/verify-otp', verifyOTP)
 router.post('/userBill/:gstin', createUserBill)
 router.post('/user/:gstin', updateUserPlanByGSTIN)
+
+// For admin
+router.post('/admin', creatAdmin)
+router.post('/adminLogIn', adminLogin)
+
 
 // for bill route 
 router.post('/getBill/:billType', getBillByDateRangeAndUserGSTIN)
