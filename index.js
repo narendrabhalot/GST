@@ -19,7 +19,7 @@ app.use(session({
     saveUninitialized: true,
 }));
 app.use(cors({
-    origin: 'http://localhost:3001',
+    origin: '*',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true
 }));
