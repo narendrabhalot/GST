@@ -23,8 +23,6 @@ app.use(cors({
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true
 }));
-
-
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use("/", route);
 mongoose.connect(dbConnectionString, {

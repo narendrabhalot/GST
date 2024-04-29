@@ -7,7 +7,7 @@ app.use(express.urlencoded({ extended: true }));
 const imageStorage = multer.diskStorage({
     destination: function (req, file, cb) {
         // Access the GSTIN from req.params if needed
-        const gstin = req.params.gst;
+        const gstin = req.params.gstin;
         const year = new Date().getFullYear();
         const monthName = new Date().toLocaleString('default', { month: 'long' });
         const uploadPath = path.join('uploads', gstin, String(year), monthName);

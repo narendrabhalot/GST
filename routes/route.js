@@ -33,9 +33,9 @@ router.post('/adminLogIn', adminLogin)
 router.post('/getBill/:billType', getBillByDateRangeAndUserGSTIN)
 
 // Image Upload route
-router.post('/upload-image/:gst/:userType', imageUpload, uploadImage)
+router.post('/upload-image/:gstin/:userType', imageUpload, uploadImage)
 router.get('/images', getImage)
-router.post('/imageDate', getImageByDateRange)
+router.post('/imageDate/:gstin', getImageByDateRange)
 // for excel file router 
 router.post('/upload-excel/:billType/:id', excelUpload, uploadExcelFile)
 router.post('/upload-b2bexcel', excelUpload, uploadB2BExcelFile)

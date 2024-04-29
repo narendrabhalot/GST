@@ -125,7 +125,7 @@ const getPlanByGSTIN = async (req, res) => {
 }
 const getPlanWithSubPlan = async (req, res) => {
     try {
-        
+
         const plans = await planModel.find().populate('subPlans').exec();
         res.json(plans);
     } catch (error) {
