@@ -57,7 +57,7 @@ const getImageByDateRange = async (req, res) => {
     try {
         const getImageByDate = await sellerImageModel.find({ createdAt: { $gte: startDate, $lte: endDate }, userGSTIN: userGSTIN }).select({ image: 1, path: 1, date: 1, _id: 0 })
         console.log(getImageByDate);
-        res.status(200).send({ status: true, data: getImageByDate.length });
+        res.status(200).send({ status: true, data: getImageByDate });
     } catch (error) {
         console.error(error);
         res.status(500).send({ error: 'Internal Server Error' });
