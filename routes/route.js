@@ -28,7 +28,7 @@ router.post('/adminLogIn', adminLogin)
 
 
 // for bill route 
-router.post('/getBill/:billType', getBillByDateRangeAndUserGSTIN)
+router.get('/getBill/:billType', getBillByDateRangeAndUserGSTIN)
 
 // Image Upload route
 router.post('/upload-image/:gstin/:userType', imageUpload, uploadImage)
@@ -55,7 +55,9 @@ router.delete('/plan/:id', deletePlan)
 router.post('/subPlan', createSubPlan)
 
 // for history api
-router.get('/history/:gstin/:userType', getBillHistoryByUserType)
+router.get('/billHistory/:gstin/:userType', getBillHistoryByUserType)
+router.get('/imageHistory/:gstin/:userType', getBillHistoryByUserType)
+
 
 // for composite API
 router.post('/composite', createComposite)
