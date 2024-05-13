@@ -12,7 +12,6 @@ const createSubPlan = async (req, res) => {
                 msg: value.error.message
             })
         }
-      
         const plans = await subPlanModel.create(req.body)
         return res.status(201).send({
             status: true,

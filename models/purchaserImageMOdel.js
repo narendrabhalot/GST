@@ -2,14 +2,17 @@ const mongoose = require('mongoose');
 const moment = require('moment');
 
 const purchaserImageSchema = new mongoose.Schema({
+    userGSTIN: {
+        type: String,
+
+    },
     image: String,
     path: String,
     date: {
-        type: String,
-        default: moment().format('DD/MM/YYYY')
+        type: Date,
+        default: () => moment().toDate()
     }
 }, { timestamps: true });
 
 
-const purchaserImage = mongoose.model('purchaserImage', purchaserImageSchema);
-module.exports = purchaserImage;
+module.exports = mongoose.model('PurchaserImage', purchaserImageSchema);

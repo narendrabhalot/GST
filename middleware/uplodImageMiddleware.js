@@ -6,15 +6,13 @@ const app = express();
 app.use(express.urlencoded({ extended: true }));
 const imageStorage = multer.diskStorage({
     destination: function (req, file, cb) {
+      
         // Access the GSTIN from req.params if needed
         const gstin = req.params.gstin;
         const year = new Date().getFullYear();
         const monthName = new Date().toLocaleString('default', { month: 'long' });
         const uploadPath = path.join('uploads', gstin, String(year), monthName);
-
-        // Create the directory if it doesn't exist
         fs.mkdirSync(uploadPath, { recursive: true });
-
         cb(null, uploadPath);
     },
     filename: function (req, file, cb) {
@@ -24,6 +22,11 @@ const imageStorage = multer.diskStorage({
 });
 const uploadImage = multer({ storage: imageStorage });
 const imageUpload = uploadImage.array("image");
+
+
+
+
+// *************upload excel file *********
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         cb(null, path.join(__dirname, '..', 'uploads')); // Destination folder

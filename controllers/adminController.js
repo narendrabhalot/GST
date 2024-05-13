@@ -1,5 +1,5 @@
 
-const jwt=require('jsonwebtoken')
+const jwt = require('jsonwebtoken')
 const adminModel = require('../models/adminModel')
 const creatAdmin = async (req, res) => {
     try {
@@ -14,15 +14,13 @@ const creatAdmin = async (req, res) => {
         res.status(500).json({ error: 'An error occurred during admin registration' });
     }
 }
-
-
 const adminLogin = async (req, res) => {
     try {
         const { emailId, password } = req.body;
         if (!emailId || !password) {
             return res.status(401).send({ status: false, msg: "Email id  or password required" });
         }
-        const admin = await adminModel.findOne({ email:emailId, password }).exec();
+        const admin = await adminModel.findOne({ email: emailId, password }).exec();
         if (!admin) {
             return res.status(401).send({ status: false, msg: "Incorrect emailId or password" });
         }

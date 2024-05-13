@@ -42,7 +42,7 @@ const registrationSchema = new mongoose.Schema({
         default: false
 
     },
-  
+
     otp: {
         value: {
             type: String,

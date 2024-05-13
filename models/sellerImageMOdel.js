@@ -6,12 +6,11 @@ const sellerImageSchema = new mongoose.Schema({
         type: String,
 
     },
-
     image: String,
     path: String,
     date: {
-        type: String,
-        default: moment().format('DD/MM/YYYY')
+        type: Date,
+        default: () => moment().toDate()
     }
 }, { timestamps: true });
 

@@ -6,6 +6,7 @@ const { billValidation, isValidRequestBody } = require("../util/validate")
 const createUserBill = async (req, res) => {
     let { invoiceNo, invoiceDate, sellerGSTIN, purchaserGSTIN, sellerName, purchaserName, totalAmount, gstRate, grandTotal, billType, Cess } = req.body;
     const userGSTIN = req.params.gstin
+
     if (!isValidRequestBody(req.body)) {
         return res.status(400).send({ status: false, message: "Invalid request parameters", data: null });
     }
@@ -27,6 +28,7 @@ const createUserBill = async (req, res) => {
             return res.status(400).send({ status: false, msg: "Incorrect grand amount" });
         }
     }
+    const formattedDate = moment(invoiceDate, "DD/MM/YYYY").format("YYYY-MM-DD");
     let getUser;
     try {
         getUser = await userModel.findOne({ gstin: userGSTIN });
@@ -48,7 +50,7 @@ const createUserBill = async (req, res) => {
         const sellerBillData = {
             userGSTIN,
             invoiceNo,
-            invoiceDate,
+            invoiceDate: formattedDate,
             sellerGSTIN,
             sellerName,
             totalAmount,
@@ -77,7 +79,7 @@ const createUserBill = async (req, res) => {
         const purchaserBillData = {
             userGSTIN,
             invoiceNo,
-            invoiceDate,
+            invoiceDate: formattedDate,
             purchaserGSTIN,
             purchaserName,
             totalAmount,

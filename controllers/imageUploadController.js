@@ -1,5 +1,5 @@
-const sellerImageModel = require('../models/sellerImageMOdel');
-const purchaserImageModel = require('../models/purchaserImageMOdel');
+const sellerImageModel = require('../models/sellerImageModel');
+const purchaserImageModel = require('../models/purchaserImageModel');
 
 
 const moment = require('moment');
@@ -7,15 +7,17 @@ const moment = require('moment');
 // Function to handle image upload and database storage
 const uploadImage = async (req, res) => {
     const { userType, gstin } = req.params
-    if (!userType) {
-        return res.status(400).send({ status: false, msg: "invalid user type.Must have a seller or purchaser" })
+
+    if (!userType || (userType !== 'seller' && userType !== "purchaser")) {
+        return res.status(400).send({ status: false, msg: "Invalid user type. Must be 'seller' or 'purchaser'" });
     }
+
     let files = req.files
+    // const formattedDate = moment(invoiceDate, "DD/MM/YYYY").format("YYYY-MM-DD");
     try {
         if (files.length == 0) {
             return res.status(400).json({ error: 'Please select a file! ' });
         }
-        console.log(req.files)
         for (const file of files) {
             if (userType == "seller") {
                 const newImage = new sellerImageModel({

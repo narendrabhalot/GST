@@ -4,7 +4,7 @@ const { userValidation } = require('../util/validate')
 const moment = require('moment')
 const createUser = async (req, res) => {
     const value = await userValidation(req.body)
-    // console.log(value)
+
     if (value.error) {
         return res.status(400).send({
             status: false,
@@ -35,7 +35,6 @@ const createUser = async (req, res) => {
             msg: "GST Portal UserName is already used ."
         })
     }
-
     try {
         const user = await userModel.create(req.body)
         return res.status(201).send({

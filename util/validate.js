@@ -176,7 +176,6 @@ const subPlanValidation = (data) => {
                 'any.required': "Please provide a description for your sub-plan.", // Custom message
             }),
     });
-
     return subPlanSchema.validate(data);
 };
 // mongoose  ObjectId validation
@@ -191,4 +190,9 @@ const isValid = function (value) {
     if (typeof value === "string" && value.trim().length === 0) return false;
     return true;
 };
-module.exports = { userValidation, logInValidation, planValidation, otpValidation, subPlanValidation, billValidation, loanValidation, isValidObjectId, isValidRequestBody, isValid }
+function isValidUserType(userType) {
+    const validUserTypes = ['seller', 'purchaser'];
+    return validUserTypes.includes(userType);
+}
+
+module.exports = { userValidation, logInValidation, planValidation, otpValidation, subPlanValidation, billValidation, loanValidation, isValidObjectId, isValidRequestBody, isValid, isValidUserType }
