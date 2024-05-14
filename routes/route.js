@@ -14,7 +14,7 @@ const { createLoan } = require('../controllers/loanController')
 const { createPlan, deletePlan, getPlan, getMyPlan, getPlanById, getPlanWithSubPlan } = require('../controllers/planController')
 const { createSubPlan } = require('../controllers/subPlanController')
 const { createComposite } = require('../controllers/compositeController')
-const { getBillHistoryByUserType, getImageHistoryByUserType } = require('../controllers/historyController')
+const { getBillHistoryByUserType, getImageHistoryByUserType, updateBillHistory } = require('../controllers/historyController')
 
 router.post('/register', createUser)
 router.post('/send-otp', sendOTP)
@@ -34,7 +34,7 @@ router.get('/getBill/:billType', getBillByDateRangeAndUserGSTIN)
 router.post('/upload-image/:gstin/:userType', imageUpload, uploadImage)
 router.get('/images', getImage)
 router.post('/imageDate/:gstin', getImageByDateRange)
-router.get('/image/:gstin/:userType', getImageHistoryByUserType)
+
 // for excel file router 
 router.post('/upload-excel/:billType/:id', excelUpload, uploadExcelFile)
 router.post('/upload-b2bexcel', excelUpload, uploadB2BExcelFile)
@@ -56,7 +56,8 @@ router.post('/subPlan', createSubPlan)
 
 // for history api
 router.get('/billHistory/:gstin/:userType', getBillHistoryByUserType)
-router.get('/imageHistory/:gstin/:userType', getBillHistoryByUserType)
+router.get('/imageHistory/:gstin/:userType', getImageHistoryByUserType)
+router.put('/bill-History/:billId/:billType', updateBillHistory)
 
 
 // for composite API

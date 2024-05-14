@@ -80,6 +80,28 @@ const getImageHistoryByUserType = async (req, res) => {
 };
 
 
+const updateBillHistory = async (req, res) => {
+    const { billId, billType } = req.params;
+
+    // Validate required fields and return appropriate error response
+    if (!billId || !billType || Object.keys(req.body).length <= 0) {
+        return res.status(400).send({ status: false, msg: "Missing required fields: billId or  billType or  and updated data in request body" });
+    }
+    const billModel = billType === 'seller' ? sellerBillModel : purchaserBillModel;
+    try {
+        // Combine findByIdAndUpdate with error handling for a cleaner approach
+        const updatedBill = await billModel.findByIdAndUpdate(billId, { $set: req.body }, { new: true, upsert: true });
+        if (!updatedBill) {
+            return res.status(404).send({ status: false, msg: `Bill of type '${billType}' with ID '${billId}' not found` });
+        }
+        return res.status(200).send({ status: true, msg: "Data updated successfully" });
+    } catch (error) {
+        console.error('Error updating bill:', error); // Log the error for debugging
+        return res.status(500).send({ status: false, msg: "Internal server error" });
+    }
+};
 
 
-module.exports = { getBillHistoryByUserType, getImageHistoryByUserType }
+
+
+module.exports = { getBillHistoryByUserType, getImageHistoryByUserType, updateBillHistory }
