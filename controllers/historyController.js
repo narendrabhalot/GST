@@ -74,7 +74,7 @@ const getImageHistoryByUserType = async (req, res) => {
     if (userType == 'seller') {
         billData = await sellerImageModel.find({ userGSTIN: gstin, date: { $gt: startDate } });
     } else {
-        billData = await purchaserBillModel.find({ userGSTIN: gstin, date: { $gt: startDate } });
+        billData = await purchaserImageModel.find({ userGSTIN: gstin, date: { $gt: startDate } });
     }
 
     if (billData.length > 0) {

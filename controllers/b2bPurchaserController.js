@@ -4,9 +4,6 @@ const xlsx = require('xlsx');
 const Joi = require('joi');
 const b2bPurchaserModel = require('../models/b2bPurchaserModel');
 const { billValidation } = require("../util/validate");
-
-
-
 function mappingOfExcelData(data) {
     const finalMappingData = []
     const columnMapping = {

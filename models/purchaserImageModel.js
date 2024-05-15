@@ -4,7 +4,6 @@ const moment = require('moment');
 const purchaserImageSchema = new mongoose.Schema({
     userGSTIN: {
         type: String,
-
     },
     image: String,
     path: String,

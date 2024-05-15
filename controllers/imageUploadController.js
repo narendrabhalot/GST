@@ -29,6 +29,7 @@ const uploadImage = async (req, res) => {
                 await newImage.save();
             } else {
                 const newImage = new purchaserImageModel({
+                    userGSTIN: gstin,
                     image: file.originalname,
                     path: file.path,
                 });
