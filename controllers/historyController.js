@@ -5,6 +5,7 @@ const purchaserBillModel = require('../models/purchaserBillModel')
 const { isValidUserType } = require('../util/validate')
 const userModel = require('../models/userModel')
 const moment = require('moment')
+const momenttz = require('moment-timezone');
 
 const getStartDate = () => {
     const months = [0, 3, 6, 9];
@@ -27,9 +28,13 @@ const getBillHistoryByUserType = async (req, res) => {
     if (userPlanType == "Monthly") {
         startDate = moment().startOf('month').toDate(); // Convert to Date object
     } else {
-
         startDate = getStartDate(); // Convert to Date object
     }
+    const utcTime = momenttz.utc(startDate);
+    const istTime = utcTime.tz('Asia/Kolkata');
+
+
+    console.log(istTime)
     // startDate = moment(startDate, "DD/MM/YYYY").toDate();
     if (userType == 'seller') {
         const getSellerBillData = await sellerBillModel.find({ userGSTIN: gstin, invoiceDate: { $gt: startDate } })
@@ -39,7 +44,7 @@ const getBillHistoryByUserType = async (req, res) => {
             return res.status(404).send({ status: true, msg: "No seller bills available" });
         }
     } else {
-        let getPurchaserBillData = await purchaserBillModel.find({ userGSTIN: gstin, invoiceDate: { $gt: new Date(startDate) } }); // Convert startDate to Date object
+        let getPurchaserBillData = await purchaserBillModel.find({ userGSTIN: gstin, invoiceDate: { $gt: startDate } }); // Convert startDate to Date object
         if (getPurchaserBillData.length > 0) {
             return res.status(400).send({ status: true, msg: "Purchaser bills retrieved successfully", data: getPurchaserBillData });
         } else {

@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const moment = require('moment')
 const purchaserBillSchema = new mongoose.Schema({
     userGSTIN: {
         type: String,
@@ -11,7 +12,7 @@ const purchaserBillSchema = new mongoose.Schema({
         trim: true,
     },
     invoiceDate: {
-        type: String,
+        type: Date, // Corrected type to Date
         required: true,
         trim: true,
     },
@@ -32,6 +33,7 @@ const purchaserBillSchema = new mongoose.Schema({
     },
     gstRate: {
         type: String,
+        required: true,
         trim: true,
     },
     grandTotal: {
@@ -62,6 +64,11 @@ const purchaserBillSchema = new mongoose.Schema({
         trim: true,
         default: 0,
     },
-}, { "timestamps": true });
-module.exports = mongoose.model('purchaserBill', purchaserBillSchema);
+}, { timestamps: true });
 
+purchaserBillSchema.virtual('formattedDate').get(function () {
+    return moment(this.invoiceDate).format('DD/MM/YYYY');
+});
+
+const userBill = mongoose.model('PurchaserBill', purchaserBillSchema);
+module.exports = userBill;
