@@ -1,33 +1,29 @@
 const Joi = require('joi');
 const mongoose = require("mongoose");
+
+const validateString = (errorMessage) => Joi.string().trim().required().messages({ 'any.required': errorMessage });
 const userValidation = (data) => {
     const userSchema = Joi.object({
-        businessName: Joi.string().trim().required().messages({
-            'any.required': "BusinessName is required",
-        }),
+        businessName: validateString("BusinessName is required"),
         schemeType: Joi.string().trim().valid('Regular', 'Composition').required().messages({
             'any.only': 'Invalid scheme types. Must be Regular or Composition',
-            'any.required': "SchemeType is required",
         }),
-        gstin: Joi.string().trim().length(15).pattern(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/).required().messages({
-            'string.pattern.base': "Invalid GSTIN format",
-            'any.required': "GSTIN number is required",
-            "string.length": "GSTIN length must be 15 characters long",
-        }),
-        address: Joi.string().trim().min(3).required().messages({
+        gstin: validateString("GSTIN number is required")
+            .length(15)
+            .pattern(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/)
+            .messages({
+                'string.pattern.base': "Invalid GSTIN format",
+                "string.length": "GSTIN length must be 15 characters long",
+            }),
+        address: validateString("Address is required").min(3).messages({
             "string.min": " Address must have at least 3 characters",
-            'any.required': "address is required",
         }),
-        mobileNumber: Joi.string().trim().pattern(/^\+91[0-9]{10}$/).required().messages({
-            'any.required': "mobileNumber is required",
+        mobileNumber: validateString("Mobile number is required").pattern(/^\+91[0-9]{10}$/).messages({
             'string.pattern.base': "Invalid mobile number format",
         }),
-        gstPortalUserName: Joi.string().trim().required().messages({
-            'any.required': "gstPortalUserName is required",
-        }),
+        gstPortalUserName: validateString("gstPortalUserName is required"),
         filingPeriod: Joi.string().trim().valid('Monthly', 'Quarterly').required().messages({
             'any.only': 'Invalid filling period. Must be Monthly or Quarterly',
-            'any.required': "filingPeriod is required",
         }),
     });
     return userSchema.validate(data);
@@ -133,25 +129,7 @@ const loanValidation = (data) => {
     return userSchema.validate(data);
 };
 const planValidation = (data) => {
-    const planSchema = Joi.object({
-        planName: Joi.string()
-            .trim()
-            .required()
-            .messages({
-                'any.required': "Please enter a name for your plan.",
-            }),
-        subPlans: Joi.required()
-            .messages({
-                'any.required': "Please enter a subPlans for your plan.",
-            }),
-
-    });
-
-    return planSchema.validate(data);
-};
-const subPlanValidation = (data) => {
     const subPlanSchema = Joi.object({
-
         subPlanName: Joi.string()
             .trim()
             .required()
@@ -175,6 +153,26 @@ const subPlanValidation = (data) => {
             .messages({
                 'any.required': "Please provide a description for your sub-plan.", // Custom message
             }),
+    });
+    const planSchema = Joi.object({
+        planName: Joi.string().required().messages({
+            'any.required': "Please enter a name for your plan.",
+        }),
+        subPlans: Joi.array().items(subPlanSchema).required().messages({
+            'any.required': "Please enter sub-plans for your plan.",
+        }),
+    });
+
+
+
+    return planSchema.validate(data);
+};
+const subPlanValidation = (data) => {
+    const subPlanSchema = Joi.object({
+        subPlanName: validateString("Please enter a sub plan name for your sub-plan."), // Use default message if none provided
+        tabs: Joi.array().required().messages({ 'any.required': "Tabs are required for your sub-plan." }),
+        subPlanPrice: Joi.number().required().messages({ 'any.required': "Price is required for your sub-plan.", 'number.base': "Price must be a number." }),
+        subPlanDescription: validateString("Please provide a description for your sub-plan."), // Use default message if none provided
     });
     return subPlanSchema.validate(data);
 };

@@ -11,8 +11,7 @@ const { createReconciliation, getReconciliationByGSTIN } = require('../controlle
 const { uploadExcelFile } = require('../controllers/excelFileController')
 const { excelUpload, imageUpload } = require('../middleware/uplodImageMiddleware')
 const { createLoan } = require('../controllers/loanController')
-const { createPlan, deletePlan, getPlan, getMyPlan, getPlanById, getPlanWithSubPlan } = require('../controllers/planController')
-const { createSubPlan } = require('../controllers/subPlanController')
+const { createPlan, createSubPlan, deletePlan, updateSubPlan, getPlan, getMyPlan, getPlanById, getPlanWithSubPlan } = require('../controllers/planController')
 const { createComposite } = require('../controllers/compositeController')
 const { getBillHistoryByUserType, getImageHistoryByUserType, updateBillHistory } = require('../controllers/historyController')
 
@@ -26,10 +25,8 @@ router.post('/user/:gstin', updateUserPlanByGSTIN)
 router.post('/admin', creatAdmin)
 router.post('/adminLogIn', adminLogin)
 
-
 // for bill route 
 router.get('/getBill/:billType', getBillByDateRangeAndUserGSTIN)
-
 // Image Upload route
 router.post('/upload-image/:gstin/:userType', imageUpload, uploadImage)
 router.get('/images', getImage)
@@ -44,8 +41,10 @@ router.post('/loan', createLoan)
 // for reconciliation 
 router.post('/reconciliation', createReconciliation)
 router.get('/reconciliation/:gstin', getReconciliationByGSTIN)
-// for plan api
-router.post('/plan', createPlan)
+// for plan and Sub plan apis 
+router.post('/plan', createPlan)   /// carete plan and subplan 
+router.post('/subPlan', createSubPlan)   //  add new sub plan when plan already exist 
+router.put('/subPlan/:planName/:subPlanId', updateSubPlan)   //  update sub-plan by subplan id
 router.get('/plan', getPlan)
 router.get('/plan-subplan', getPlanWithSubPlan)
 router.get('/plan/:id', getPlanById)

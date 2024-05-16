@@ -1,5 +1,5 @@
 
-const { planValidation, isValidObjectId } = require('../util/validate')
+const { planValidation, isValidObjectId, subPlanValidation } = require('../util/validate')
 const { default: mongoose } = require("mongoose");
 const planModel = require('../models/planModel'); // Assuming planModel is in a separate file
 const subPlanModel = require('../models/subPlanModel'); // Import the SubPlan model
@@ -30,38 +30,147 @@ function checkPlanExpiration(purchaseDate) {
 
 const createPlan = async (req, res) => {
     try {
-        const value = await planValidation(req.body)
-        console.log(value)
-        if (value.error) {
+        // Validate the request body
+        const { error } = planValidation(req.body);
+        if (error) {
             return res.status(400).send({
                 status: false,
-                msg: value.error.message
-            })
+                msg: error.details[0].message,
+            });
         }
-        for (let id of req.body.subPlans) {
-            if (!isValidObjectId(id)) {
-                return res.status(404).send({ status: false, msg: "Valid sub plan object iD required." });
-            }
-            let checkIdExist = await subPlanModel.findById(id)
-            if (!checkIdExist) {
-                return res.status(404).send({ status: false, msg: `No sub-plan exists for this(${id}) object ID.` });
-            }
 
+        // Check if a plan with the same name already exists
+        const existingPlan = await planModel.findOne({ planName: req.body.planName });
+        if (existingPlan) {
+            return res.status(400).send({
+                status: false,
+                msg: 'A plan with this name already exists.',
+            });
         }
-        const plan = await planModel.create(req.body)
+        // Create the new plan
+        const plan = await planModel.create(req.body);
         return res.status(201).send({
             status: true,
-            msg: 'Plan  create  successfully!',
-            data: plan
+            msg: 'Plan created successfully!',
+            data: plan,
         });
     } catch (error) {
         res.status(500).json({
             status: false,
-            message: 'Error registering user!',
-            error: error.message
+            message: 'Error creating plan!',
+            error: error.message,
         });
     }
 };
+
+
+
+
+const createSubPlan = async (req, res) => {
+    try {
+        // Validate the new sub-plan (assuming planValidation is defined elsewhere)
+
+        const { error } = planValidation(req.body);
+        if (error) {
+            return res.status(400).send({
+                status: false,
+                msg: error.details[0].message,
+            });
+        }
+
+        // Check if subPlans exist in the request body
+        if (!req.body.subPlans) {
+            return res.status(400).send({
+                status: false,
+                msg: 'Missing sub-plans in request body.',
+            });
+        }
+
+        // Find the existing plan by planName
+        const plan = await planModel.findOne({ planName: req.body.planName });
+        if (!plan) {
+            return res.status(404).send({
+                status: false,
+                msg: 'Plan not found with this plan name',
+            });
+        }
+
+        // Update the subPlans array using push or set
+        // Option 1: Using push
+        plan.subPlans.push(...req.body.subPlans);  // Spread operator to add each subPlan
+        // Option 2: Using set (replace entire array)
+        // plan.subPlans = req.body.subPlans;
+
+        // Save the updated plan
+        const updatedPlan = await plan.save();
+        console.log(updatedPlan);
+        res.status(200).send({
+            status: true,
+            msg: 'Sub-plan added successfully!',
+            data: updatedPlan,
+        });
+    } catch (error) {
+        res.status(500).json({
+            status: false,
+            message: 'Error adding sub-plan!',
+            error: error.message,
+        });
+    }
+};
+
+
+const updateSubPlan = async (req, res) => {
+    try {
+
+        const { planName, subPlanId } = req.params
+        // Validate the updated sub-plan data
+        const { error } = subPlanValidation(req.body);
+        if (error) {
+            return res.status(400).send({
+                status: false,
+                msg: error.details[0].message,
+            });
+        }
+
+        // Find the existing plan by planName
+        const plan = await planModel.findOne({ planName: planName });
+        if (!plan) {
+            return res.status(404).send({
+                status: false,
+                msg: 'Plan not found with this plan name',
+            });
+        }
+        // Find the index of the sub-plan to update
+        const subPlanIndex = plan.subPlans.findIndex(subPlan => subPlan._id.toString() === subPlanId);
+        if (subPlanIndex === -1) {
+            return res.status(404).send({
+                status: false,
+                msg: 'Sub-plan not found with this id ',
+            });
+        }
+        // Update the sub-plan properties
+        plan.subPlans[subPlanIndex] = req.body;
+        // Save the updated plan
+        // let updatedPlan = await planModel.findOneAndUpdate(
+        //     { planName: planName },
+        //     { $set: { [`subPlans.${subPlanIndex}`]: req.body } },
+        //     { new: true } // Optional: Return the updated plan
+        // );
+        const updatedPlan = await plan.save();
+        res.status(200).send({
+            status: true,
+            msg: 'Sub-plan updated successfully!',
+            data: updatedPlan,
+        });
+    } catch (error) {
+        res.status(500).json({
+            status: false,
+            message: 'Error updating sub-plan!',
+            error: error.message,
+        });
+    }
+};
+
 
 const getPlan = async (req, res) => {
     try {
@@ -166,6 +275,6 @@ const getMyPlan = async (req, res) => {
         return res.status(500).send({ status: false, msg: "Internal server error." });
     }
 };
-module.exports = { createPlan, deletePlan, getPlan, getPlanByGSTIN, getPlanById, getMyPlan, getPlanWithSubPlan }
+module.exports = { createPlan, deletePlan, updateSubPlan, getPlan, getPlanByGSTIN, getPlanById, getMyPlan, getPlanWithSubPlan, createSubPlan }
 
 
