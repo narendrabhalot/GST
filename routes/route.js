@@ -44,7 +44,7 @@ router.get('/reconciliation/:gstin', getReconciliationByGSTIN)
 // for plan and Sub plan apis 
 router.post('/plan', createPlan)   /// carete plan and subplan 
 router.post('/subPlan/:planId', createSubPlan)   //  add new sub plan when plan already exist 
-router.put('/subPlan/:planName/:subPlanId', updateSubPlan)   //  update sub-plan by subplan id
+router.put('/subPlan/:planId/:subPlanId', updateSubPlan)   //  update sub-plan by subplan id
 router.get('/plan', getPlan)
 router.get('/plan-subplan', getPlanWithSubPlan)
 router.get('/plan/:id', getPlanById)

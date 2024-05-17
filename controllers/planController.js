@@ -130,7 +130,7 @@ const createSubPlan = async (req, res) => {
 const updateSubPlan = async (req, res) => {
     try {
 
-        const { planName, subPlanId } = req.params
+        const { planId, subPlanId } = req.params
         // Validate the updated sub-plan data
         const { error } = subPlanValidation(req.body);
         if (error) {
@@ -141,8 +141,8 @@ const updateSubPlan = async (req, res) => {
         }
 
         // Find the existing plan by planName
-        const plan = await planModel.findOne({ planName: planName });
-        if (!plan) {
+        const plan = await planModel.findById(planId);
+        if (!planId) {
             return res.status(404).send({
                 status: false,
                 msg: 'Plan not found with this plan name',
