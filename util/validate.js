@@ -48,7 +48,7 @@ const otpValidation = (data) => {
     return otpSchema.validate(data)
 }
 const billValidation = (data) => {
-    const userSchema = Joi.object({
+    const billSchema = Joi.object({
         userGSTIN: Joi.string().trim().length(15).pattern(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/).required().messages({
             'string.pattern.base': "Invalid User GSTIN format",
             'any.required': " User GSTIN number is required",
@@ -105,12 +105,11 @@ const billValidation = (data) => {
             'any.required': "GrandTotal is required",
         }),
         billType: Joi.string().trim().valid('seller', 'purchaser').messages({
-
             'any.only': 'Invalid bill types. Must be seller or purchaser',
         }),
         Cess: Joi.string().optional()
     });
-    return userSchema.validate(data);
+    return billSchema.validate(data);
 };
 const loanValidation = (data) => {
     const userSchema = Joi.object({
@@ -130,29 +129,10 @@ const loanValidation = (data) => {
 };
 const planValidation = (data) => {
     const subPlanSchema = Joi.object({
-        subPlanName: Joi.string()
-            .trim()
-            .required()
-            .messages({
-                'any.required': "Please enter a name for your sub-plan.",
-            }),
-        tabs: Joi.array()
-            .required()
-            .messages({
-                'array.base': "Tabs must be of type array",
-                'any.required': "Tabs are required for your sub-plan.",
-            }),
-        subPlanPrice: Joi
-            .required()
-            .messages({
-                'any.required': "Price  are required for your sub-plan.",
-            }),
-        subPlanDescription: Joi.string()
-            .trim()
-            .required()
-            .messages({
-                'any.required': "Please provide a description for your sub-plan.", // Custom message
-            }),
+        subPlanName: validateString("Please enter a sub plan name for your sub-plan."), // Use default message if none provided
+        tabs: Joi.array().required().messages({ 'any.required': "Tabs are required for your sub-plan." }),
+        subPlanPrice: Joi.number().required().messages({ 'any.required': "Price is required for your sub-plan.", 'number.base': "Price must be a number." }),
+        subPlanDescription: validateString("Description required for sub-plan."), // Use default message if none provided
     });
     const planSchema = Joi.object({
         planName: Joi.string().required().messages({
@@ -172,7 +152,7 @@ const subPlanValidation = (data) => {
         subPlanName: validateString("Please enter a sub plan name for your sub-plan."), // Use default message if none provided
         tabs: Joi.array().required().messages({ 'any.required': "Tabs are required for your sub-plan." }),
         subPlanPrice: Joi.number().required().messages({ 'any.required': "Price is required for your sub-plan.", 'number.base': "Price must be a number." }),
-        subPlanDescription: validateString("Please provide a description for your sub-plan."), // Use default message if none provided
+        subPlanDescription: validateString("Description required for sub-plan."), // Use default message if none provided
     });
     return subPlanSchema.validate(data);
 };

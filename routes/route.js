@@ -13,7 +13,7 @@ const { excelUpload, imageUpload } = require('../middleware/uplodImageMiddleware
 const { createLoan } = require('../controllers/loanController')
 const { createPlan, createSubPlan, deletePlan, updateSubPlan, getPlan, getMyPlan, getPlanById, getPlanWithSubPlan } = require('../controllers/planController')
 const { createComposite } = require('../controllers/compositeController')
-const { getBillHistoryByUserType, getImageHistoryByUserType, updateBillHistory } = require('../controllers/historyController')
+const { getBillHistoryByUserType, getImageHistoryByUserType, updateBillHistory, getFilingHistory } = require('../controllers/historyController')
 
 router.post('/register', createUser)
 router.post('/send-otp', sendOTP)
@@ -43,7 +43,7 @@ router.post('/reconciliation', createReconciliation)
 router.get('/reconciliation/:gstin', getReconciliationByGSTIN)
 // for plan and Sub plan apis 
 router.post('/plan', createPlan)   /// carete plan and subplan 
-router.post('/subPlan', createSubPlan)   //  add new sub plan when plan already exist 
+router.post('/subPlan/:planId', createSubPlan)   //  add new sub plan when plan already exist 
 router.put('/subPlan/:planName/:subPlanId', updateSubPlan)   //  update sub-plan by subplan id
 router.get('/plan', getPlan)
 router.get('/plan-subplan', getPlanWithSubPlan)
@@ -57,6 +57,7 @@ router.post('/subPlan', createSubPlan)
 router.get('/billHistory/:gstin/:userType', getBillHistoryByUserType)
 router.get('/imageHistory/:gstin/:userType', getImageHistoryByUserType)
 router.put('/bill-History/:billId/:billType', updateBillHistory)
+router.get('/filling/:userGSTIN', getFilingHistory)
 
 
 // for composite API

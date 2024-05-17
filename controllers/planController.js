@@ -70,7 +70,7 @@ const createSubPlan = async (req, res) => {
     try {
         // Validate the new sub-plan (assuming planValidation is defined elsewhere)
 
-        const { error } = planValidation(req.body);
+        const { error } = subPlanValidation(req.body);
         if (error) {
             return res.status(400).send({
                 status: false,
@@ -79,15 +79,16 @@ const createSubPlan = async (req, res) => {
         }
 
         // Check if subPlans exist in the request body
-        if (!req.body.subPlans) {
-            return res.status(400).send({
-                status: false,
-                msg: 'Missing sub-plans in request body.',
-            });
-        }
+        // if (!req.body.subPlans) {
+        //     return res.status(400).send({
+        //         status: false,
+        //         msg: 'Missing sub-plans in request body.',
+        //     });
+        // }
 
         // Find the existing plan by planName
-        const plan = await planModel.findOne({ planName: req.body.planName });
+        const plan = await planModel.findById(req.params.planId);
+        // console.log()
         if (!plan) {
             return res.status(404).send({
                 status: false,
@@ -95,13 +96,19 @@ const createSubPlan = async (req, res) => {
             });
         }
 
-        // Update the subPlans array using push or set
-        // Option 1: Using push
-        plan.subPlans.push(...req.body.subPlans);  // Spread operator to add each subPlan
-        // Option 2: Using set (replace entire array)
-        // plan.subPlans = req.body.subPlans;
+        const subPlanIndex = plan.subPlans.findIndex(subPlan => subPlan.subPlanName == req.body.subPlanName);
+        if (subPlanIndex !== -1) {
+            return res.status(404).send({
+                status: false,
+                msg: 'Already exist sub Plan with this  sub plan name ',
+            });
+        }
 
-        // Save the updated plan
+
+
+        let obj = { ...req.body }
+
+        plan.subPlans.push(obj);
         const updatedPlan = await plan.save();
         console.log(updatedPlan);
         res.status(200).send({
@@ -110,6 +117,7 @@ const createSubPlan = async (req, res) => {
             data: updatedPlan,
         });
     } catch (error) {
+        console.log(error.message)
         res.status(500).json({
             status: false,
             message: 'Error adding sub-plan!',

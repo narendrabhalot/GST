@@ -53,6 +53,12 @@ const registrationSchema = new mongoose.Schema({
             default: null,
         },
     },
+    itcRemaining: {
+        type: String,
+        required: true,
+        trim: true,
+        default: 0
+    },
 
 }, { "timestamps": true });
 
