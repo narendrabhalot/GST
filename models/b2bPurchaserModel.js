@@ -11,7 +11,7 @@ const b2bPurchaserSchema = new mongoose.Schema({
         trim: true,
     },
     invoiceDate: {
-        type: String,
+        type: Date,
         required: true,
         trim: true,
     },

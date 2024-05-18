@@ -114,10 +114,10 @@ const getFilingHistory = async (req, res) => {
 
         // Retrieve user details from the database
         let getUserDetail = await userModel.findOne({ gstin: userGSTIN });
+        let iteRemaining = 500
         if (!getUserDetail) {
             return res.status(404).send({ status: false, message: "User not found" });
         }
-
         // Determine user's plan type and calculate the start date
         let userPlanType = getUserDetail.filingPeriod;
         let startDate = getStartDate(userPlanType);
@@ -126,63 +126,89 @@ const getFilingHistory = async (req, res) => {
         console.log("Start Date:", startDate);
 
         // Aggregate filing data for the user
-        // const filingDataOfUser = await sellerBillModel.aggregate([
-        //     {
-        //         $match: {
-        //             userGSTIN,
-        //             invoiceDate: { $gt: startDate.toDate() }
-        //         }
-        //     },
-        //     {
-        //         $group: {
-        //             _id: "$userGSTIN",
-        //             sumOftotalAmount: { $sum: { $convert: { input: "$totalAmount", to: "double" } } },
-        //             sumOfSaleSGST: { $sum: { $convert: { input: "$SGST", to: "double" } } },
-        //             sumOfSaleIGST: { $sum: { $convert: { input: "$IGST", to: "double" } } },
-        //             sumOfSaleCGST: { $sum: { $convert: { input: "$CGST", to: "double" } } },
-        //             filingData: { $push: "$$ROOT" }
-        //         }
-        //     },
-        //     {
-        //         $project: {
-        //             _id: 1,
-        //             sumOftotalAmount: 1,
-        //             sumOfSaleSGST: 1,
-        //             sumOfSaleCGST: 1,
-        //             sumOfSaleIGST: 1,
-        //             sumOfSaleOfIGST_CGST_SGSTtotalAmount: { $sum: { "$sumOfSaleSGST", "$sumOfSaleCGST", "$sumOfSaleIGST"} }
-        //         },
-        //         // filingData: 1,
-        //         debugStep1: "grouped data"
-        //     },
+        const filingDataOfUser = await sellerBillModel.aggregate([
+            {
+                $match: {
+                    userGSTIN,
+                    invoiceDate: { $gt: startDate.toDate() }
+                }
+            },
+            {
+                $group: {
+                    _id: "$userGSTIN",
+                    sumOftotalAmount: { $sum: { $convert: { input: "$totalAmount", to: "double" } } },
+                    sumOfSaleSGST: { $sum: { $convert: { input: "$SGST", to: "double" } } },
+                    sumOfSaleCGST: { $sum: { $convert: { input: "$CGST", to: "double" } } },
+                    sumOfSaleIGST: { $sum: { $convert: { input: "$IGST", to: "double" } } },
+                    filingData: { $push: "$$ROOT" }
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    sumOftotalAmount: 1,
+                    // sumOfSaleSGST: 1,
+                    // sumOfSaleCGST: 1,
+                    // sumOfSaleIGST: 1,
+                    totalSaleTaxAmount: { $sum: ['$sumOfSaleSGST', '$sumOfSaleCGST', '$sumOfSaleIGST'] },
+                    filingData: 1,
+                    debugStep1: "grouped data"
+                }
+            },
+            {
+                $lookup: {
+                    from: 'b2bpurchasers',
+                    localField: '_id',
+                    foreignField: 'userGSTIN',
+                    as: 'b2bData',
+                    pipeline: [
+                        {
+                            $match: {
+                                invoiceDate: { $gt: startDate.toDate() } // Use the passed startDate
+                            }
+                        },
+                    ]
+                }
+            },
 
-        //     {
-        //         $lookup: {
-        //             from: 'b2bpurchasers',
-        //             localField: '_id',
-        //             foreignField: 'userGSTIN',
-        //             as: 'b2bData'
-        //         }
-        //     },
-        //     {
-        //         $project: {
-        //             _id: 1,
-        //             sumOftotalAmount: 1,
+            {
+                $project: {
+                    _id: 0,
+                    sumOftotalAmount: 1,
+                    totalSaleTaxAmount: 1,
+                    b2bPurchaserName: '$b2bData',
+                    debugStep3: "final projection",
+                    sumOfB2BSGST: { $sum: "$b2bData.SGST" },
+                    sumOfB2BCGST: { $sum: "$b2bData.CGST" },
+                    sumOfB2BIGST: { $sum: "$b2bData.IGST" },
+                    // sumofB2BTotelTax: { $sum: ["$sumOfB2BSGST", "$sumOfB2BCGST", "$sumOfB2BIGST"] }
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    sumOftotalAmount: 1,
+                    // sumOfSaleSGST: 1,
+                    // sumOfSaleCGST: 1,
+                    // sumOfSaleIGST: 1,
+                    totalSaleTaxAmount: 1,
+                    filingData: 1,
+                    sumofB2BTotelTax: { $sum: ["$sumOfB2BSGST", "$sumOfB2BCGST", "$sumOfB2BIGST"] },
 
-        //             b2bPurchaserName: '$b2bData',
-        //             debugStep2: "after lookup"
-        //         }
-        //     },
-        //     // {
-        //     //     $project: {
-        //     //         _id: 0,
-        //     //         sumOftotalAmount: 1,
-        //     //         b2bPurchaserName: '$b2bData',
-        //     //         b2bPurchaserEmail: { $first: '$b2bData.totalAmount' },
-        //     //         debugStep3: "final projection"
-        //     //     }
-        //     // }
-        // ]);
+
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    sumOftotalAmount: 1,
+                    totalSaleTaxAmount: 1,
+                    filingData: 1,
+                    sumofB2BTotelTax: 1,
+                    ITCremainning: { $subtract: [{ $sum: ["$totalSaleTaxAmount", "$sumofB2BTotelTax"] }, iteRemaining] }
+                }
+            },
+        ]);
 
         // Check if any filing data is found
         if (!filingDataOfUser.length) {
@@ -201,6 +227,112 @@ const getFilingHistory = async (req, res) => {
         return res.status(500).send({ status: false, message: "Internal Server Error" });
     }
 };
+// const getFilingHistory = async (req, res) => {
+//     try {
+//         // Extract userGSTIN from request parameters
+//         let { userGSTIN } = req.params;
+
+//         // Retrieve user details from the database
+//         let getUserDetail = await userModel.findOne({ gstin: userGSTIN });
+//         if (!getUserDetail) {
+//             return res.status(404).send({ status: false, message: "User not found" });
+//         }
+
+//         // Determine user's plan type and calculate the start date
+//         let userPlanType = getUserDetail.filingPeriod;
+//         let startDate = getStartDate(userPlanType);
+//         startDate = momenttz.utc(startDate).tz('Asia/Kolkata');
+
+//         console.log("Calculated Start Date:", startDate);
+
+//         // Aggregate filing data for the user
+//         const filingDataOfUser = await sellerBillModel.aggregate([
+//             {
+//                 $match: {
+//                     userGSTIN: userGSTIN,
+//                     invoiceDate: { $gt: startDate.toDate() }
+//                 }
+//             },
+//             {
+//                 $group: {
+//                     _id: "$userGSTIN", // Group by user GSTIN
+//                     sumOftotalAmount: { $sum: { $convert: { input: "$totalAmount", to: "double" } } },
+//                     filingData: { $push: "$$ROOT" }
+//                 }
+//             },
+//             {
+//                 $lookup: {
+//                     from: 'b2bpurchasers', // Join from the 'b2bpurchasers' collection
+//                     localField: '_id', // Grouped user GSTIN in the current pipeline
+//                     foreignField: 'userGSTIN', // User GSTIN field in the 'b2bpurchasers' collection
+//                     as: 'b2bData' // Alias for the joined b2b purchaser data
+//                 }
+//             },
+//             {
+//                 $unwind: "$b2bData" // Unwind the b2bData array to access individual documents
+//             },
+//             {
+//                 $group: {
+//                     _id: "$_id",
+//                     sumOftotalAmount: { $first: "$sumOftotalAmount" }, // Preserve the sumOftotalAmount from previous group stage
+//                     filingData: { $first: "$filingData" }, // Preserve the filingData from previous group stage
+//                     sumOfB2BSGST: {
+//                         $sum: {
+//                             $cond: {
+//                                 if: { $gt: ["$b2bData.invoiceDate", startDate.toDate()] },
+//                                 then: { $convert: { input: "$b2bData.SGST", to: "double", onError: 0, onNull: 0 } },
+//                                 else: 0
+//                             }
+//                         }
+//                     },
+//                     sumOfB2BCGST: {
+//                         $sum: {
+//                             $cond: {
+//                                 if: { $gt: ["$b2bData.invoiceDate", startDate.toDate()] },
+//                                 then: { $convert: { input: "$b2bData.CGST", to: "double", onError: 0, onNull: 0 } },
+//                                 else: 0
+//                             }
+//                         }
+//                     },
+//                     sumOfB2BIGST: {
+//                         $sum: {
+//                             $cond: {
+//                                 if: { $gt: ["$b2bData.invoiceDate", startDate.toDate()] },
+//                                 then: { $convert: { input: "$b2bData.IGST", to: "double", onError: 0, onNull: 0 } },
+//                                 else: 0
+//                             }
+//                         }
+//                     }
+//                 }
+//             },
+//             {
+//                 $project: {
+//                     _id: 0,
+//                     userGSTIN: "$_id", // Include userGSTIN in the output
+//                     sumOftotalAmount: 1,
+//                     filingData: 1,
+//                     sumOfB2BSGST: 1, // Include the summed SGST values
+//                     sumOfB2BCGST: 1, // Include the summed CGST values
+//                     sumOfB2BIGST: 1 // Include the summed IGST values
+//                 }
+//             }
+//         ]);
+
+//         // Check if any filing data is found
+//         if (!filingDataOfUser.length) {
+//             console.log('No matching seller bills found.');
+//             return res.send({ status: true, data: { sumOftotalAmount: 0, filingData: [], sumOfB2BSGST: 0, sumOfB2BCGST: 0, sumOfB2BIGST: 0 } });
+//         }
+
+//         // Send the filing data and sum of total amounts as response
+//         return res.send({ status: true, data: filingDataOfUser[0] });
+
+//     } catch (error) {
+//         // Handle any unexpected errors
+//         console.error("Error fetching filing history:", error);
+//         return res.status(500).send({ status: false, message: "Internal Server Error" });
+//     }
+// };
 
 
 

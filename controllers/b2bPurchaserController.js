@@ -53,7 +53,7 @@ const uploadB2BExcelFile = async (req, res) => {
             return res.status(400).send({ status: false, msg: "Sheet name body parameter is required " })
         }
         const range = req.body.startRowData ? req.body.startRowData - 2 : 5
-        const getUserGSTIN = fileName.split('_')[1];
+        let getUserGSTIN = fileName.split('_')[1];
         const gstSchema = Joi.string()
             .trim()
             .length(15)
@@ -67,7 +67,7 @@ const uploadB2BExcelFile = async (req, res) => {
         const { error: gstError, value: validatedGST } = gstSchema.validate(getUserGSTIN);
         if (gstError) {
             getUserGSTIN = req.body.userGSTIN
-            if (getUserGSTIN.lemgth == 0) {
+            if (getUserGSTIN.length == 0) {
                 return res.status(400).send({ status: false, msg: "User's GSTIN number is required " })
             }
         }
@@ -87,7 +87,7 @@ const uploadB2BExcelFile = async (req, res) => {
             $and: [
                 { purchaserGSTIN: { $in: mappingDatais.map(row => row.purchaserGSTIN) } },
                 { invoiceNo: { $in: mappingDatais.map(row => row.invoiceNo) } },
-                { invoiceDate: { $in: mappingDatais.map(row => row.invoiceDate) } },
+                { invoiceDate: { $in: mappingDatais.map(row => new Date(row.invoiceDate)) } }
             ]
         }
         )) {

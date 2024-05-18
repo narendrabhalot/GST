@@ -58,7 +58,7 @@ const billValidation = (data) => {
             'any.required': "InvoiceNo is required",
             'any.string': "invoiceNo data type required string"
         }),
-        invoiceDate: Joi.string().trim().pattern(/^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/).required().messages({
+        invoiceDate: Joi.string().trim().pattern(/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/).required().messages({
             'any.required': "Invoice date is required",
             'string.pattern.base': "Invoice date must be DD/MM/YYYY format",
         }),
