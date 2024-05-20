@@ -4,6 +4,7 @@ const subPlanSchema = new mongoose.Schema({
     subPlanName: {
         type: String,
         required: true,
+        enum: ["Gold", "platinum", "Dimond"],
         trim: true
     },
     subPlanPrice: {
@@ -11,7 +12,10 @@ const subPlanSchema = new mongoose.Schema({
         default: 0
     },
     tabs: {
-        type: Array,
+        type: [{
+            type: String,
+            enum: ["Filling history", "Sale history", "Purchaser history", "Reconcilition"]
+        }],
         required: true
     },
     subPlanDescription: {
@@ -21,8 +25,7 @@ const subPlanSchema = new mongoose.Schema({
     },
 });
 const planSchema = new mongoose.Schema({
-    planName: { type: String, required: true },
-
+    planName: { type: String, enum: ["Image upload", "Excel upload", "Mannual Fill"], required: true },
     subPlans: [subPlanSchema],
 });
 module.exports = mongoose.model('Plan', planSchema);

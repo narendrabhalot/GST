@@ -27,7 +27,6 @@ function checkPlanExpiration(purchaseDate) {
         throw error;
     }
 }
-
 const createPlan = async (req, res) => {
     try {
         // Validate the request body
@@ -62,10 +61,6 @@ const createPlan = async (req, res) => {
         });
     }
 };
-
-
-
-
 const createSubPlan = async (req, res) => {
     try {
         // Validate the new sub-plan (assuming planValidation is defined elsewhere)
@@ -125,8 +120,6 @@ const createSubPlan = async (req, res) => {
         });
     }
 };
-
-
 const updateSubPlan = async (req, res) => {
     try {
 
@@ -178,8 +171,6 @@ const updateSubPlan = async (req, res) => {
         });
     }
 };
-
-
 const getPlan = async (req, res) => {
     try {
         const getPlan = await planModel.find();
@@ -196,7 +187,6 @@ const getPlan = async (req, res) => {
         });
     }
 };
-
 const deletePlan = async (req, res) => {
     const planId = req.params.id;
     if (!isValidObjectId(planId)) {
@@ -204,7 +194,7 @@ const deletePlan = async (req, res) => {
     }
 
     try {
-        const deletedPlan = await planModel.findOneAndDelete({ _id: planId });
+        const deletedPlan = await planModel.findByIdAndDelete(planId);
         if (!deletedPlan) {
             return res.status(404).send({ status: false, msg: `No plan found with ID: ${planId}` });
         }
@@ -250,9 +240,6 @@ const getPlanWithSubPlan = async (req, res) => {
         res.status(500).json({ error: 'Internal server error' });
     }
 };
-
-
-
 const getMyPlan = async (req, res) => {
     try {
         const userGSTIN = req.params.gstin;
