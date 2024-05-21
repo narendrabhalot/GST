@@ -32,7 +32,7 @@ router.get('/getBill/:billType', getBillByDateRangeAndUserGSTIN)
 // Image Upload route
 router.post('/upload-image/:gstin/:userType', imageUpload, uploadImage)
 router.get('/images', getImage)
-router.post('/imageDate', getImageByDateRange)
+router.get('/imageDate', getImageByDateRange)
 
 
 // for loan route
