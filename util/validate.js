@@ -130,9 +130,10 @@ const loanValidation = (data) => {
 const planValidation = (data) => {
 
     const subPlanSchema = Joi.object({
-        subPlanName: Joi.string().required().messages({
+        subPlanName: Joi.string().required().valid("Gold", "Platinum", "Dimond").messages({
             'string.base': '"subPlanName" should be a type of text',
-            'any.required': '"subPlanName" is a required field'
+            'any.required': '"subPlanName" is a required field',
+            'any.only': 'Invalid sunplan  name . Must be Gold, Platinum, Dimond',
         }),
         tabs: Joi.array().items(Joi.string().valid(...validTabs)).required().messages({
             'array.base': '"tabs" must be an array',
