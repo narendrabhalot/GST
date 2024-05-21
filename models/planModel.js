@@ -4,7 +4,7 @@ const subPlanSchema = new mongoose.Schema({
     subPlanName: {
         type: String,
         required: true,
-        enum: ["Gold", "platinum", "Dimond"],
+        enum: ["Gold", "Platinum", "Dimond"],
         trim: true
     },
     subPlanPrice: {

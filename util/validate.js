@@ -128,13 +128,25 @@ const loanValidation = (data) => {
     return userSchema.validate(data);
 };
 const planValidation = (data) => {
+    const validTabs = ["Filling history", "Sale history", "Purchaser history", "Reconcilition"];
     const subPlanSchema = Joi.object({
-        subPlanName: validateString("Please enter a sub plan name for your sub-plan.").valid("Gold", "platinum", "Dimond").messages({
-            'any.only': 'Invalid subPlanName . Must be Gold, platinum, Dimond',
-        }),// Use default message if none provided
-        tabs: Joi.array().required().valid("Filling history", "Sale history", "Purchaser history", "Reconcilition").messages({ 'any.only': 'Invalid  tabs item . Must be Filling history, Sale history, Purchaser history, Reconcilition', 'any.required': "Tabs are required for your sub-plan." }),
-        subPlanPrice: Joi.number().required().messages({ 'any.required': "Price is required for your sub-plan.", 'number.base': "Price must be a number." }),
-        subPlanDescription: validateString("Description required for sub-plan."), // Use default message if none provided
+        subPlanName: Joi.string().required().messages({
+            'string.base': '"subPlanName" should be a type of text',
+            'any.required': '"subPlanName" is a required field'
+        }),
+        tabs: Joi.array().items(Joi.string().valid(...validTabs)).required().messages({
+            'array.base': '"tabs" must be an array',
+            'array.includes': '"tabs" contains an invalid value',
+            'any.required': '"tabs" is a required field'
+        }),
+        subPlanPrice: Joi.number().required().messages({
+            'number.base': '"subPlanPrice" should be a type of number',
+            'any.required': '"subPlanPrice" is a required field'
+        }),
+        subPlanDescription: Joi.string().required().messages({
+            'string.base': '"subPlanDescription" should be a type of text',
+            'any.required': '"subPlanDescription" is a required field'
+        })
     });
     const planSchema = Joi.object({
         planName: Joi.string().required().valid("Image upload", "Excel upload", "Mannual Fill").messages({
