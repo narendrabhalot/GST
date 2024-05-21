@@ -133,9 +133,11 @@ const planValidation = (data) => {
         subPlanName: Joi.string().required().valid("Gold", "Platinum", "Dimond").messages({
             'string.base': '"subPlanName" should be a type of text',
             'any.required': '"subPlanName" is a required field',
-            'any.only': 'Invalid sunplan  name . Must be Gold, Platinum, Dimond',
+            'any.only': 'Invalid subplan  name . Must be Gold, Platinum, Dimond',
         }),
-        tabs: Joi.array().items(Joi.string().valid(...validTabs)).required().messages({
+        tabs: Joi.array().items(Joi.string().valid(...validTabs).messages({
+            'any.only': `"{#value}" is not a valid tab item. Valid tabs are: ${validTabs.join(', ')}`
+        })).required().messages({
             'array.base': '"tabs" must be an array',
             'any.required': '"tabs" is a required field',
             'array.includes': '"tabs" contains an invalid value'
