@@ -1,6 +1,6 @@
 const Joi = require('joi');
 const mongoose = require("mongoose");
-
+const validTabs = ["Filling history", "Sale history", "Purchaser history", "Reconcilition", "Image Sale", "Image Purchaser", "Excel Purchase", "Excel Sale", "Mannual Sale", "Mannual Purchaser"];
 const validateString = (errorMessage) => Joi.string().trim().required().messages({ 'any.required': errorMessage });
 const userValidation = (data) => {
     const userSchema = Joi.object({
@@ -128,7 +128,7 @@ const loanValidation = (data) => {
     return userSchema.validate(data);
 };
 const planValidation = (data) => {
-    const validTabs = ["Filling history", "Sale history", "Purchaser history", "Reconcilition"];
+
     const subPlanSchema = Joi.object({
         subPlanName: Joi.string().required().messages({
             'string.base': '"subPlanName" should be a type of text',
@@ -136,8 +136,8 @@ const planValidation = (data) => {
         }),
         tabs: Joi.array().items(Joi.string().valid(...validTabs)).required().messages({
             'array.base': '"tabs" must be an array',
-            'array.includes': '"tabs" contains an invalid value',
-            'any.required': '"tabs" is a required field'
+            'any.required': '"tabs" is a required field',
+            'array.includes': '"tabs" contains an invalid value'
         }),
         subPlanPrice: Joi.number().required().messages({
             'number.base': '"subPlanPrice" should be a type of number',
@@ -149,23 +149,37 @@ const planValidation = (data) => {
         })
     });
     const planSchema = Joi.object({
-        planName: Joi.string().required().valid("Image upload", "Excel upload", "Mannual Fill").messages({
-            'any.required': "Please enter a name for your plan.",
-            'any.only': 'Invalid planName . Must be Image upload, Excel upload, Mannual Fill',
+        planName: Joi.string().required().messages({
+            'string.base': '"planName" should be a type of text',
+            'any.required': '"planName" is a required field'
         }),
         subPlans: Joi.array().items(subPlanSchema).required().messages({
-            'any.required': "Please enter sub-plans for your plan.",
-        }),
+            'array.base': 'subPlans must be an array',
+            'any.required': '"subPlans" is a required field'
+        })
     });
 
     return planSchema.validate(data);
 };
 const subPlanValidation = (data) => {
     const subPlanSchema = Joi.object({
-        subPlanName: validateString("Please enter a sub plan name for your sub-plan."), // Use default message if none provided
-        tabs: Joi.array().required().messages({ 'any.required': "Tabs are required for your sub-plan." }),
-        subPlanPrice: Joi.number().required().messages({ 'any.required': "Price is required for your sub-plan.", 'number.base': "Price must be a number." }),
-        subPlanDescription: validateString("Description required for sub-plan."), // Use default message if none provided
+        subPlanName: Joi.string().required().messages({
+            'string.base': '"subPlanName" should be a type of text',
+            'any.required': '"subPlanName" is a required field'
+        }),
+        tabs: Joi.array().items(Joi.string().valid(...validTabs)).required().messages({
+            'array.base': '"tabs" must be an array',
+            'any.required': '"tabs" is a required field',
+            'array.includes': '"tabs" contains an invalid value'
+        }),
+        subPlanPrice: Joi.number().required().messages({
+            'number.base': '"subPlanPrice" should be a type of number',
+            'any.required': '"subPlanPrice" is a required field'
+        }),
+        subPlanDescription: Joi.string().required().messages({
+            'string.base': '"subPlanDescription" should be a type of text',
+            'any.required': '"subPlanDescription" is a required field'
+        })
     });
     return subPlanSchema.validate(data);
 };

@@ -69,7 +69,7 @@ const createSubPlan = async (req, res) => {
         if (error) {
             return res.status(400).send({
                 status: false,
-                msg: error.details[0].message,
+                errorss: error.details.map(detail => detail.message).join(', '),
             });
         }
 
