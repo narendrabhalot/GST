@@ -6,7 +6,6 @@ const { billValidation, isValidRequestBody } = require("../util/validate")
 const createUserBill = async (req, res) => {
     let { invoiceNo, invoiceDate, sellerGSTIN, purchaserGSTIN, sellerName, purchaserName, totalAmount, gstRate, grandTotal, billType, Cess } = req.body;
     const userGSTIN = req.params.gstin
-
     if (!isValidRequestBody(req.body)) {
         return res.status(400).send({ status: false, message: "Invalid request parameters", data: null });
     }

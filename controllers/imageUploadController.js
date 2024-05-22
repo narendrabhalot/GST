@@ -47,37 +47,28 @@ const getImage = async (req, res) => {
     return res.status(200).send({ status: true, data: images })
 }
 const getImageByDateRange = async (req, res) => {
-
-    const userGSTIN = req.params.gstin;
-    let { startDate, endDate, userType } = req.query; // Access query parameters
-
-    if (!startDate || !endDate) {
+    let { startDate, endDate, userType, gstins } = req.query; // Access query parameters
+    if (!startDate || !endDate || !gstins) {
         return res.status(400).send({ status: false, msg: "start date  and end date required in this DD/MM/YYYY formate " })
     }
     startDate = moment(startDate, "DD/MM/YYYY").format('YYYY-MM-DD');
-    endDate = moment(endDate, "DD/MM/YYYY").format('YYYY-MM-DD');
+    endDate = moment(endDate, "DD/MM/YYYY").endOf('day').format('YYYY-MM-DD');
+    const modelName = userType == 'seller' ? sellerImageModel : purchaserImageModel
+    gstins = gstins ? gstins.split(',') : [];
     if (moment(startDate).isAfter(endDate)) {
         return res.send({ status: false, msg: "Start date is greater than end date" });
     }
     try {
-        if (userType == "seller") {
+        const getImageByDate = await modelName.find({
+            userGSTIN: { $in: gstins },
+            createdAt: { $gte: startDate, $lt: moment(endDate).add(1, 'days').format('YYYY-MM-DD') },
+        }).select({ image: 1, path: 1, date: 1, _id: 0 });
 
-
-            const getImageByDate = await sellerImageModel.find({ createdAt: { $gte: startDate, $lte: endDate } }).select({ image: 1, path: 1, date: 1, _id: 0 })
-            if (getImageByDate.length > 0) {
-                res.status(200).send({ status: true, data: getImageByDate });
-            } else {
-                res.status(404).send({ status: false, msg: "No image found" });
-            }
+        if (getImageByDate.length > 0) {
+            return res.status(200).send({ status: true, data: getImageByDate });
         } else {
-            const getImageByDate = await purchaserImageModel.find({ createdAt: { $gte: startDate, $lte: endDate } }).select({ image: 1, path: 1, date: 1, _id: 0 })
-            if (getImageByDate.length > 0) {
-                res.status(200).send({ status: true, data: getImageByDate });
-            } else {
-                res.status(404).send({ status: false, msg: "No image found" });
-            }
+            return res.status(404).send({ status: false, msg: "No image found with this gst no. and date range " });
         }
-
     } catch (error) {
         console.error(error);
         res.status(500).send({ error: 'Internal Server Error' });
