@@ -54,21 +54,16 @@ const billValidation = (data) => {
             'any.required': " User GSTIN number is required",
             "string.length": "User GSTIN length must be 15 characters long",
         }),
-        invoiceNo: Joi.string().trim().required().messages({
-            'any.required': "InvoiceNo is required",
-            'any.string': "invoiceNo data type required string"
-        }),
-        invoiceDate: Joi.string().trim().pattern(/^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$/).required().messages({
+        invoiceNo: Joi.string().trim().optional(),
+        invoiceDate: Joi.string().trim().pattern(/^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/
+        ).required().messages({
             'any.required': "Invoice date is required",
             'string.pattern.base': "Invoice date must be DD/MM/YYYY format",
         }),
         sellerGSTIN: Joi.when('billType', {
             is: 'seller',
-            then: Joi.string().trim().length(15).pattern(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/).required().messages({
-                'string.pattern.base': "Invalid GSTIN format",
-                'any.required': "Seller GSTIN number is required",
-                "string.length": "Seller GSTIN length must be 15 characters long",
-            })
+            then: Joi.string().trim().length(15).pattern(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/).required(),
+            otherwise: Joi.string().trim().optional().length(15).pattern(/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/) // Optional validation (optional)
         }),
         purchaserGSTIN: Joi.when('billType', {
             is: 'purchaser',

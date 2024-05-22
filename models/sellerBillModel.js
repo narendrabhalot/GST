@@ -8,7 +8,7 @@ const sellerBillSchema = new mongoose.Schema({
     },
     invoiceNo: {
         type: String,
-        required: true,
+
         trim: true,
     },
     invoiceDate: {
@@ -18,7 +18,6 @@ const sellerBillSchema = new mongoose.Schema({
     },
     sellerGSTIN: {
         type: String,
-        required: true,
         trim: true,
     },
     sellerName: {
