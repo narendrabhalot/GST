@@ -15,6 +15,8 @@ const registrationSchema = new mongoose.Schema({
         type: String,
         required: true,
         trim: true,
+        uppercase: true,
+        set: (gstin) => gstin.toUpperCase()
     },
     address: {
         type: String,
@@ -42,7 +44,6 @@ const registrationSchema = new mongoose.Schema({
         default: false
 
     },
-
     otp: {
         value: {
             type: String,

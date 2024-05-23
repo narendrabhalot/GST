@@ -121,7 +121,7 @@ const getFilingHistory = async (req, res) => {
         // Determine user's plan type and calculate the start date
         let userPlanType = getUserDetail.filingPeriod;
         let startDate = getStartDate(userPlanType);
-        startDate = momenttz.utc(startDate).tz('Asia/Kolkata');
+        startDate = moment(startDate).utc().toDate();
         console.log("Start Date:", startDate);
 
         // Aggregate filing data for the user
@@ -135,78 +135,61 @@ const getFilingHistory = async (req, res) => {
             {
                 $group: {
                     _id: "$userGSTIN",
-                    sumOftotalAmount: { $sum: { $toDouble: "$totalAmount" } },
-                    sumOfSaleSGST: { $sum: { $toDouble: "$SGST" } },
-                    sumOfSaleCGST: { $sum: { $toDouble: "$CGST" } },
-                    sumOfSaleIGST: { $sum: { $toDouble: "$IGST" } },
+                    sumOftotalAmount: { $sum: { $convert: { input: "$totalAmount", to: "double" } } },
+                    sumOfSaleSGST: { $sum: { $convert: { input: "$SGST", to: "double" } } },
+                    sumOfSaleIGST: { $sum: { $convert: { input: "$IGST", to: "double" } } },
+                    sumOfSaleCGST: { $sum: { $convert: { input: "$CGST", to: "double" } } },
                     filingData: { $push: "$$ROOT" }
                 }
             },
+            {
+                $project: {
+                    _id: 1,
+                    sumOftotalAmount: 1,
+                    sumOfSaleSGST: 1,
+                    sumOfSaleCGST: 1,
+                    sumOfSaleIGST: 1,
+                    sumOfSaleOfIGST_CGST_SGSTtotalAmount: { $sum: ["$sumOfSaleSGST", "$sumOfSaleCGST", "$sumOfSaleIGST"] }
+                },
+                // filingData: 1,
+                debugStep1: "grouped data"
+            },
+
             {
                 $lookup: {
                     from: 'b2bpurchasers',
                     localField: '_id',
                     foreignField: 'userGSTIN',
-                    as: 'b2bData',
-                    pipeline: [
-                        {
-                            $match: {
-                                invoiceDate: { $gt: startDate.toDate() }
-                            }
-                        },
-                        {
-                            $project: {
-                                _id: 0,
-                                SGST: { $toDouble: "$SGST" },
-                                CGST: { $toDouble: "$CGST" },
-                                IGST: { $toDouble: "$IGST" }
-                            }
-                        }
-                    ]
-                }
-            },
-            {
-                $addFields: {
-                    sumOfB2BSGST: { $sum: "$b2bData.SGST" },
-                    sumOfB2BCGST: { $sum: "$b2bData.CGST" },
-                    sumOfB2BIGST: { $sum: "$b2bData.IGST" }
-                }
-            },
-            {
-                $addFields: {
-                    sumofB2BTotelTax: { $add: ["$sumOfB2BSGST", "$sumOfB2BCGST", "$sumOfB2BIGST"] },
-                    totalSaleTaxAmount: { $add: ["$sumOfSaleSGST", "$sumOfSaleCGST", "$sumOfSaleIGST"] }
-                }
-            },
-            {
-                $addFields: {
-                    ITCRemaining: { $subtract: [{ $add: ["$totalSaleTaxAmount", "$sumofB2BTotelTax"] }, iteRemaining] }
-                }
-            },
-            {
-                $addFields: {
-                    ITCRemaining: { $subtract: [{ $add: ["$totalSaleTaxAmount", "$sumofB2BTotelTax"] }, iteRemaining] }
+                    as: 'b2bData'
                 }
             },
             {
                 $project: {
-                    _id: 0,
+                    _id: 1,
                     sumOftotalAmount: 1,
-                    totalSaleTaxAmount: 1,
-                    filingData: 1,
-                    sumofB2BTotelTax: 1,
-                    ITCRemaining: 1
+
+                    b2bPurchaserName: '$b2bData',
+                    debugStep2: "after lookup"
                 }
-            }
+            },
+            // {
+            //     $project: {
+            //         _id: 0,
+            //         sumOftotalAmount: 1,
+            //         b2bPurchaserName: '$b2bData',
+            //         b2bPurchaserEmail: { $first: '$b2bData.totalAmount' },
+            //         debugStep3: "final projection"
+            //     }
+            // }
         ]);
         // Check if any filing data is found
-        if (!filingDataOfUser.length) {
-            console.log('No matching seller bills found.');
-            return res.send({ status: true, data: { sumOftotalAmount: 0, filingData: [] } });
-        }
+        // if (!filingDataOfUser.length) {
+        //     console.log('No matching seller bills found.');
+        //     return res.send({ status: true, data: { sumOftotalAmount: 0, filingData: [] } });
+        // }
         console.log("Filing Data of User:", filingDataOfUser);
         // Send the filing data and sum of total amounts as response
-        return res.send({ status: true, data: filingDataOfUser[0] });
+        return res.send({ status: true, data: filingDataOfUser });
 
     } catch (error) {
         // Handle any unexpected errors

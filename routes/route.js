@@ -74,7 +74,7 @@ router.post('/adminLogIn', adminLogin)
 //for excel api 
 
 // for excel file router 
-router.post('/upload-excel/:billType/:id', excelUpload, uploadExcelFile)   //// admin upload excel for apecific user GSTIN 
+router.post('/upload-excel/:billType/:id', excelUpload)   //// admin upload excel for apecific user GSTIN 
 router.post('/upload-b2bexcel', excelUpload, uploadB2BExcelFile)
 router.post('/upload-b2baexcel', excelUpload, uploadB2BAExcelFile)
 
