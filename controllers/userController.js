@@ -52,9 +52,9 @@ const createUser = async (req, res) => {
 };
 const updateUserPlanByGSTIN = async (req, res) => {
     const userGSTIN = req.params.gstin
-    const { planName, tabs } = req.body;  // Assuming req.body contains the new value for 'isPlan'
-    if (!planName || !tabs) {
-        return res.send({ status: false, msg: "planName or tabs reuired" })
+    const { planName, tabs, subPlanName, price } = req.body;  // Assuming req.body contains the new value for 'isPlan'
+    if (!planName || !tabs || !subPlanName || !price) {
+        return res.send({ status: false, msg: "planName or tabs or subPlanName or price  reuired" })
     }
     try {
         const user = await userModel.findOne({ gstin: userGSTIN });
@@ -65,6 +65,8 @@ const updateUserPlanByGSTIN = async (req, res) => {
             isActive: true,
             isPurchaseDate: moment().format('DD/MM/YYYY'),
             planData: planName,
+            subPlanName: subPlanName,
+            price: price,
             tabs: tabs
         }
         user.isPlan = obj
