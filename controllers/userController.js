@@ -78,4 +78,24 @@ const updateUserPlanByGSTIN = async (req, res) => {
     }
 };
 
-module.exports = { createUser, updateUserPlanByGSTIN }
+
+const getUser = async (req, res) => {
+
+
+    try {
+
+        const user = await userModel.find().select({otp:0,createdAt:0,updatedAt:0})
+
+        if (user.length <= 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        return res.status(200).send({ status: false, msg: "user get successfully", data: user })
+
+    } catch (error) {
+        console.error('Error finding user:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+
+}
+
+module.exports = { createUser, updateUserPlanByGSTIN, getUser }

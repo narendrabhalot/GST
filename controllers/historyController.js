@@ -94,6 +94,10 @@ const updateBillHistory = async (req, res) => {
     if (!billId || !billType || Object.keys(req.body).length <= 0) {
         return res.status(400).send({ status: false, msg: "Missing required fields: billId or  billType or  and updated data in request body" });
     }
+    let { userGSTIN, invoiceNo, invoiceDate, sellerGSTIN, b2bPurchaserName, purchaserGSTIN, sellerName, totalAmount, gstRate, grandTotal, totalTaxPaid, Cess, ...rest } = req.body
+    if (Object.keys(rest).length > 0) {
+     return res.status(400).send({status:false,message:`Unexpected properties found in request body like ${Object.keys(rest)} `})
+      }
     const billModel = billType === 'seller' ? sellerBillModel : purchaserBillModel;
     try {
         // Combine findByIdAndUpdate with error handling for a cleaner approach

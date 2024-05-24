@@ -36,7 +36,7 @@ const createUserBill = async (req, res) => {
         const getStateOfUser = userGSTIN.slice(0, 2);
 
         if (billType == "seller") {
-            const mappingData = await sellerBillModel.find({userGSTIN});
+            const mappingData = await sellerBillModel.find({ userGSTIN });
             const existingInvoiceMap = new Map();
             const formattedDate = moment(invoiceDate, "DD/MM/YYYY").format("YYYY-MM-DD");
 
@@ -80,7 +80,7 @@ const createUserBill = async (req, res) => {
             await userBill.save();
             return res.status(201).send({ status: true, msg: "Bill uploded successfully", data: userBill });
         } else {
-            const mappingData = await purchaserBillModel.find({userGSTIN});
+            const mappingData = await purchaserBillModel.find({ userGSTIN });
             const existingInvoiceMap = new Map();
             const formattedDate = moment(invoiceDate, "DD/MM/YYYY").format("YYYY-MM-DD");
 
