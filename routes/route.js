@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { createUser, updateUserPlanByGSTIN, getUser } = require('../controllers/userController')
+const { createUser, updateUserPlanByGSTIN, getUser, updateUser } = require('../controllers/userController')
 const { creatAdmin, adminLogin } = require('../controllers/adminController')
 const { sendOTP, verifyOTP } = require('../controllers/authController')
 const { createUserBill, getBillByDateRangeAndUserGSTIN } = require('../controllers/billController')
@@ -68,6 +68,8 @@ router.post('/composite', createComposite)
 
 // for user   api 
 router.get('/user', getUser)
+router.put('/user/:id', updateUser)
+
 
 // For  create admin
 router.post('/admin', creatAdmin)

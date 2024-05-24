@@ -1,6 +1,7 @@
+const { restart } = require('nodemon');
 const planModel = require('../models/planModel');
 const userModel = require('../models/userModel');
-const { userValidation } = require('../util/validate')
+const { userValidation, isValidObjectId } = require('../util/validate')
 const moment = require('moment')
 const createUser = async (req, res) => {
     const value = await userValidation(req.body)
@@ -80,22 +81,59 @@ const updateUserPlanByGSTIN = async (req, res) => {
 
 
 const getUser = async (req, res) => {
-
-
     try {
-
-        const user = await userModel.find().select({otp:0,createdAt:0,updatedAt:0})
-
+        const user = await userModel.find().select({ otp: 0, createdAt: 0, updatedAt: 0 })
         if (user.length <= 0) {
             return res.status(404).json({ message: 'User not found' });
         }
-        return res.status(200).send({ status: false, msg: "user get successfully", data: user })
+        return res.status(200).send({ status: true, msg: "User get successfully", data: user })
 
     } catch (error) {
         console.error('Error finding user:', error);
-        res.status(500).json({ message: 'Internal Server Error' });
+        return res.status(500).json({ message: 'Internal Server Error' });
     }
 
 }
+const updateUser = async (req, res) => {
+    try {
+        const userId = req.params.id;
+        const { businessName, schemeType, gstin, address, mobileNumber, gstPortalUserName, filingPeriod, isPlan, otp, itcRemaining, ...rest } = req.body
 
-module.exports = { createUser, updateUserPlanByGSTIN, getUser }
+        if (Object.keys(rest).length > 0) {
+            return res.status(400).send({ status: false, message: `Unexpected properties found in request body like ${Object.keys(rest)} ` })
+        }
+        if (Object.keys(req.body).length <= 0) {
+            return res.status(400).send({ status: false, msg: "upadte field required in body parameter" })
+        }
+        if (!isValidObjectId(userId)) {
+            console.log('Invalid userInfoId format');
+            return res.status(400).send({ status: false, msg: "Invalid UserInfo id" });
+        }
+        const gstinRegex = /^[0-9]{2}[A-Za-z]{5}[0-9]{4}[A-Za-z]{1}[1-9A-Za-z]{1}[Zz][0-9A-Za-z]{1}$/;
+        const mobile = /^\+91[0-9]{10}$/
+        if (gstin && !gstinRegex.test(gstin)) {
+            return res.status(400).send({ status: false, msg: 'Invalid GSTIN' })
+        }
+        if (mobileNumber && !mobile.test(mobileNumber)) {
+            return res.status(400).send({ status: false, msg: 'Invalid mobileNumber format. Please ensure it follows the +91XXXXXXXXXX format' })
+        }
+        if (mobileNumber) {
+            let checkMobileNoExist = await userModel.findOne({ mobileNumber })
+            if (checkMobileNoExist) {
+                return res.status(400).send({ status: false, msg: 'this mobileNo. is already exist ' })
+            }
+        }
+        const updateUser = await userModel.findByIdAndUpdate(userId, req.body, { new: true, insert: true });
+        if (!updateUser) {
+            console.log(`User not found with id: ${userId}`);
+            return res.status(404).send({ status: false, msg: `User not found with id: ${userId}` });
+        }
+        console.log(updateUser)
+        res.status(200).send({ status: true, msg: "User update successfully" });
+    } catch (error) {
+        console.error(error); // Log the error for debugging
+        res.status(500).send({ status: false, msg: "Error updating user", error: error.message }); // Inform client of a general error
+    }
+}
+
+module.exports = { createUser, updateUserPlanByGSTIN, getUser, updateUser }
