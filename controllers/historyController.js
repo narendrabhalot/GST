@@ -98,13 +98,16 @@ const updateBillHistory = async (req, res) => {
     if (Object.keys(rest).length > 0) {
         return res.status(400).send({ status: false, message: `Unexpected properties found in request body like ${Object.keys(rest)} ` })
     }
+    const requiredGSTRates = new Set([5, 12, 18, 28]);
+    if (!requiredGSTRates.has(gstRate)) {
+        console.log("gst rate invalid")
+        return res.status(400).send({ status: false, msg: "Incorrect GST rate " });
+    }
     const billModel = billType === 'seller' ? sellerBillModel : purchaserBillModel;
     const validGrandAmount = Number(totalAmount) + (totalAmount * (gstRate / 100));
     if (validGrandAmount !== Number(grandTotal)) {
         return res.status(400).send({ status: false, msg: "Incorrect grand amount" });
     }
-
-
     const formattedDate = moment(invoiceDate, "DD/MM/YYYY").format("YYYY-MM-DD");
     const query = {
         invoiceNo: invoiceNo.trim(),
@@ -112,33 +115,15 @@ const updateBillHistory = async (req, res) => {
         sellerGSTIN: sellerGSTIN.trim()
     };
 
-    let checkDataExist = await sellerBillModel.find(query);
-
-    if (!checkDataExist) {
-        return res.send({ status: false, msg: "Combination of userBillGSTIN, invoiceDate, and invoiceNo already exists." })
-
+    let checkDataExist = await billModel.find(query);
+    if (checkDataExist) {
+        let result = await checkDataExist.every(item => item._id.equals(billId));
+        if (!result) {
+            return res.send({ status: false, msg: "Combination of userBillGSTIN, invoiceDate, and invoiceNo already exists." })
+        }
     }
-    // let checkduplicateData;
-    // const mappingData = await billModel.find({ userGSTIN });
-    // const existingInvoiceMap = new Map();
-    // const formattedDate = moment(invoiceDate, "DD/MM/YYYY").format("YYYY-MM-DD");
-    // console.log(formattedDate)
-    // mappingData.forEach(invoice => {
-    //     const invoiceGstin = invoice["sellerGSTIN"];
+    console.log(checkDataExist)
 
-    //     const formattedInvoiceDate = moment(invoice.invoiceDate).format("YYYY-MM-DD");
-    //     if (invoiceGstin && invoice.invoiceNo && invoice.invoiceDate) {
-    //         const key = `${invoiceGstin.trim().toLowerCase()}-${invoice.invoiceNo.trim().toLowerCase()}-${formattedInvoiceDate}`;
-    //         existingInvoiceMap.set(key, invoice);
-    //     }
-    // });
-
-    // const newInvoiceKey = `${sellerGSTIN.trim().toLowerCase()}-${invoiceNo.trim().toLowerCase()}-${formattedDate}`;
-
-    // if (!existingInvoiceMap.has(newInvoiceKey)) {
-    //     return res.send({ status: false, msg: "Combination of userBillGSTIN, invoiceDate, and invoiceNo already exists." })
-
-    // }
     let SGST, CGST, IGST;
     const getStateOfUser = userGSTIN.slice(0, 2);
 
@@ -149,6 +134,7 @@ const updateBillHistory = async (req, res) => {
     } else {
         IGST = gstRate;
     }
+    req.body.invoiceDate = formattedDate
     try {
         // Combine findByIdAndUpdate with error handling for a cleaner approach
         const updatedBill = await billModel.findByIdAndUpdate(billId, { $set: req.body }, { new: true, upsert: true });

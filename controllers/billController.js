@@ -5,11 +5,6 @@ const { checkInvoiceExistence } = require('../util/utils');
 const moment = require('moment')
 const { sellerBillvalidation, purchaserBillvalidation, isValidRequestBody } = require("../util/validate")
 
-
-
-
-
-
 const createUserBill = async (req, res) => {
     try {
         let { invoiceNo, invoiceDate, sellerGSTIN, purchaserGSTIN, sellerName, purchaserName, totalAmount, gstRate, grandTotal, billType, Cess } = req.body;
