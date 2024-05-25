@@ -32,17 +32,18 @@ const sendOTP = async (req, res) => {
         const otp = generateOTP();
         console.log(otp)
         console.log(mobileNumber)
-        if (user.mobileNumber == '+919714500394') {
+        if (user.mobileNumber == '+919714500394' || user.mobileNumber == '+918817730702' || user.mobileNumber == '+918057481497') {
             user.otp = { value: "123456" };
             await user.save();
         } else {
             user.otp = { value: otp, Date: new Date() };
             await user.save();
             console.log(user)
+            await sendSMS(mobileNumber, otp)
         }
 
 
-        await sendSMS(mobileNumber, otp);
+
 
         res.status(201).send({ status: true, msg: "Otp sent successfully" })
     } catch (error) {

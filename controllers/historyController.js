@@ -2,6 +2,7 @@ const sellerImageModel = require('../models/sellerImageModel')
 const sellerBillModel = require('../models/sellerBillModel')
 const purchaserImageModel = require('../models/purchaserImageModel')
 const purchaserBillModel = require('../models/purchaserBillModel')
+const { checkInvoiceExistence } = require('../util/utils');
 const { isValidUserType } = require('../util/validate')
 const userModel = require('../models/userModel')
 const moment = require('moment')
@@ -89,16 +90,65 @@ const getImageHistoryByUserType = async (req, res) => {
 
 const updateBillHistory = async (req, res) => {
     const { billId, billType } = req.params;
-
     // Validate required fields and return appropriate error response
     if (!billId || !billType || Object.keys(req.body).length <= 0) {
         return res.status(400).send({ status: false, msg: "Missing required fields: billId or  billType or  and updated data in request body" });
     }
     let { userGSTIN, invoiceNo, invoiceDate, sellerGSTIN, b2bPurchaserName, purchaserGSTIN, sellerName, totalAmount, gstRate, grandTotal, totalTaxPaid, Cess, ...rest } = req.body
     if (Object.keys(rest).length > 0) {
-     return res.status(400).send({status:false,message:`Unexpected properties found in request body like ${Object.keys(rest)} `})
-      }
+        return res.status(400).send({ status: false, message: `Unexpected properties found in request body like ${Object.keys(rest)} ` })
+    }
     const billModel = billType === 'seller' ? sellerBillModel : purchaserBillModel;
+    const validGrandAmount = Number(totalAmount) + (totalAmount * (gstRate / 100));
+    if (validGrandAmount !== Number(grandTotal)) {
+        return res.status(400).send({ status: false, msg: "Incorrect grand amount" });
+    }
+
+
+    const formattedDate = moment(invoiceDate, "DD/MM/YYYY").format("YYYY-MM-DD");
+    const query = {
+        invoiceNo: invoiceNo.trim(),
+        invoiceDate: formattedDate,
+        sellerGSTIN: sellerGSTIN.trim()
+    };
+
+    let checkDataExist = await sellerBillModel.find(query);
+
+    if (!checkDataExist) {
+        return res.send({ status: false, msg: "Combination of userBillGSTIN, invoiceDate, and invoiceNo already exists." })
+
+    }
+    // let checkduplicateData;
+    // const mappingData = await billModel.find({ userGSTIN });
+    // const existingInvoiceMap = new Map();
+    // const formattedDate = moment(invoiceDate, "DD/MM/YYYY").format("YYYY-MM-DD");
+    // console.log(formattedDate)
+    // mappingData.forEach(invoice => {
+    //     const invoiceGstin = invoice["sellerGSTIN"];
+
+    //     const formattedInvoiceDate = moment(invoice.invoiceDate).format("YYYY-MM-DD");
+    //     if (invoiceGstin && invoice.invoiceNo && invoice.invoiceDate) {
+    //         const key = `${invoiceGstin.trim().toLowerCase()}-${invoice.invoiceNo.trim().toLowerCase()}-${formattedInvoiceDate}`;
+    //         existingInvoiceMap.set(key, invoice);
+    //     }
+    // });
+
+    // const newInvoiceKey = `${sellerGSTIN.trim().toLowerCase()}-${invoiceNo.trim().toLowerCase()}-${formattedDate}`;
+
+    // if (!existingInvoiceMap.has(newInvoiceKey)) {
+    //     return res.send({ status: false, msg: "Combination of userBillGSTIN, invoiceDate, and invoiceNo already exists." })
+
+    // }
+    let SGST, CGST, IGST;
+    const getStateOfUser = userGSTIN.slice(0, 2);
+
+
+    const getStateOfSeller = sellerGSTIN.slice(0, 2);
+    if (getStateOfSeller === getStateOfUser) {
+        SGST = CGST = gstRate / 2;
+    } else {
+        IGST = gstRate;
+    }
     try {
         // Combine findByIdAndUpdate with error handling for a cleaner approach
         const updatedBill = await billModel.findByIdAndUpdate(billId, { $set: req.body }, { new: true, upsert: true });

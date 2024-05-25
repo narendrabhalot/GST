@@ -1,14 +1,21 @@
 const userModel = require('../models/userModel')
 const sellerBillModel = require('../models/sellerBillModel')
 const purchaserBillModel = require('../models/purchaserBillModel')
+const { checkInvoiceExistence } = require('../util/utils');
 const moment = require('moment')
 const { sellerBillvalidation, purchaserBillvalidation, isValidRequestBody } = require("../util/validate")
+
+
+
+
+
+
 const createUserBill = async (req, res) => {
     try {
         let { invoiceNo, invoiceDate, sellerGSTIN, purchaserGSTIN, sellerName, purchaserName, totalAmount, gstRate, grandTotal, billType, Cess } = req.body;
         const userGSTIN = req.params.gstin;
         let billValidationSchema = billType == 'seller' ? sellerBillvalidation : purchaserBillvalidation;
-
+        const formattedDate = moment(invoiceDate, "DD/MM/YYYY").format("YYYY-MM-DD");
         if (!isValidRequestBody(req.body)) {
             return res.status(400).send({ status: false, message: "Invalid request parameters", data: null });
         }
@@ -17,7 +24,6 @@ const createUserBill = async (req, res) => {
         if (billValidationResult.error) {
             return res.status(400).send({ status: false, msg: billValidationResult.error.message });
         }
-
         if (!gstRate) {
             const calculatedGSTRate = ((Number(grandTotal) / Number(totalAmount)) - 1) * 100;
             gstRate = calculatedGSTRate.toFixed(2);
@@ -34,33 +40,23 @@ const createUserBill = async (req, res) => {
 
         let SGST, CGST, IGST;
         const getStateOfUser = userGSTIN.slice(0, 2);
-
+        let checkduplicateData;
         if (billType == "seller") {
-            const mappingData = await sellerBillModel.find({ userGSTIN });
-            const existingInvoiceMap = new Map();
-            const formattedDate = moment(invoiceDate, "DD/MM/YYYY").format("YYYY-MM-DD");
+            checkduplicateData = await checkInvoiceExistence(sellerBillModel, userGSTIN, invoiceDate, invoiceNo, sellerGSTIN, 'sellerGSTIN');
 
-            mappingData.forEach(invoice => {
-                const formattedInvoiceDate = moment(invoice.invoiceDate).format("YYYY-MM-DD");
-                const key = `${invoice.sellerGSTIN.trim().toLowerCase()}-${invoice.invoiceNo.trim().toLowerCase()}-${formattedInvoiceDate}`;
-                existingInvoiceMap.set(key, invoice);
-            });
-
-            const newInvoiceKey = `${sellerGSTIN.trim().toLowerCase()}-${invoiceNo.trim().toLowerCase()}-${formattedDate}`;
-            if (existingInvoiceMap.has(newInvoiceKey)) {
-                return res.status(400).send({
+            if (checkduplicateData && !checkduplicateData.status) {
+                return res.status(checkduplicateData.code).send({
                     status: false,
-                    msg: "The combination of invoiceNo, invoiceDate, and GSTIN is already existing."
+                    msg: checkduplicateData.msg,
+                    data: checkduplicateData.data
                 });
             }
-
             const getStateOfSeller = sellerGSTIN.slice(0, 2);
             if (getStateOfSeller === getStateOfUser) {
                 SGST = CGST = gstRate / 2;
             } else {
                 IGST = gstRate;
             }
-
             const sellerBillData = {
                 userGSTIN,
                 invoiceNo,
@@ -75,29 +71,18 @@ const createUserBill = async (req, res) => {
                 IGST,
                 Cess
             };
-
             const userBill = new sellerBillModel(sellerBillData);
             await userBill.save();
             return res.status(201).send({ status: true, msg: "Bill uploded successfully", data: userBill });
         } else {
-            const mappingData = await purchaserBillModel.find({ userGSTIN });
-            const existingInvoiceMap = new Map();
-            const formattedDate = moment(invoiceDate, "DD/MM/YYYY").format("YYYY-MM-DD");
-
-            mappingData.forEach(invoice => {
-                const formattedInvoiceDate = moment(invoice.invoiceDate).format("YYYY-MM-DD");
-                const key = `${invoice.purchaserGSTIN.trim().toLowerCase()}-${invoice.invoiceNo.trim().toLowerCase()}-${formattedInvoiceDate}`;
-                existingInvoiceMap.set(key, invoice);
-            });
-
-            const newInvoiceKey = `${purchaserGSTIN.trim().toLowerCase()}-${invoiceNo.trim().toLowerCase()}-${formattedDate}`;
-            if (existingInvoiceMap.has(newInvoiceKey)) {
-                return res.status(400).send({
+            checkduplicateData = await checkInvoiceExistence(purchaserBillModel, userGSTIN, invoiceDate, invoiceNo, purchaserGSTIN, 'purchaserGSTIN');
+            if (checkduplicateData && !checkduplicateData.status) {
+                return res.status(checkduplicateData.code).send({
                     status: false,
-                    msg: "The combination of invoiceNo, invoiceDate, and GSTIN is already existing."
+                    msg: checkduplicateData.msg,
+                    data: checkduplicateData.data
                 });
             }
-
             const getStateOfPurchaser = purchaserGSTIN.slice(0, 2);
             if (getStateOfPurchaser === getStateOfUser) {
                 SGST = gstRate / 2;
