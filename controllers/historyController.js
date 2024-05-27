@@ -2,7 +2,7 @@ const sellerImageModel = require('../models/sellerImageModel')
 const sellerBillModel = require('../models/sellerBillModel')
 const purchaserImageModel = require('../models/purchaserImageModel')
 const purchaserBillModel = require('../models/purchaserBillModel')
-const { checkInvoiceExistence } = require('../util/utils');
+
 const { isValidUserType } = require('../util/validate')
 const userModel = require('../models/userModel')
 const moment = require('moment')
@@ -22,7 +22,6 @@ const getStartDate = (userPlan) => {
 };
 const getBillHistoryByUserType = async (req, res) => {
     const { gstin, userType } = req.params;
-
     if (!isValidUserType(userType)) {
         return res.status(400).send({ status: false, error: 'User type must be seller or purchaser' });
     }
@@ -32,11 +31,8 @@ const getBillHistoryByUserType = async (req, res) => {
     }
     let userPlanType = getUser.filingPeriod;
     let startDate = getStartDate(userPlanType)
-
     const utcTime = momenttz.utc(startDate);
     const istTime = utcTime.tz('Asia/Kolkata');
-
-
     console.log(istTime)
     // startDate = moment(startDate, "DD/MM/YYYY").toDate();
     if (userType == 'seller') {
@@ -72,7 +68,6 @@ const getImageHistoryByUserType = async (req, res) => {
     } else {
         startDate = getStartDate();
     }
-
     let billData;
     if (userType == 'seller') {
         billData = await sellerImageModel.find({ userGSTIN: gstin, date: { $gt: startDate } });
@@ -222,28 +217,29 @@ const getFilingHistory = async (req, res) => {
 
         // Retrieve user details from the database
         let getUserDetail = await userModel.findOne({ gstin: userGSTIN });
-        let iteRemaining = 500
+
         if (!getUserDetail) {
             return res.status(404).send({ status: false, message: "User not found" });
         }
+        let iteRemaining = getUserDetail.itcRemaining
         // Determine user's plan type and calculate the start date
         let userPlanType = getUserDetail.filingPeriod;
         let startDate = getStartDate(userPlanType);
-        startDate = moment(startDate).utc().toDate();
+
         console.log("Start Date:", startDate);
 
         // Aggregate filing data for the user
         const filingDataOfUser = await sellerBillModel.aggregate([
             {
                 $match: {
-                    userGSTIN,
-                    invoiceDate: { $gt: startDate.toDate() }
+                    userGSTIN: userGSTIN,
+                    invoiceDate: { $gt: startDate }
                 }
             },
             {
                 $group: {
                     _id: "$userGSTIN",
-                    sumOftotalAmount: { $sum: { $convert: { input: "$totalAmount", to: "double" } } },
+                    netSale: { $sum: { $convert: { input: "$grandTotal", to: "double" } } },
                     sumOfSaleSGST: { $sum: { $convert: { input: "$SGST", to: "double" } } },
                     sumOfSaleIGST: { $sum: { $convert: { input: "$IGST", to: "double" } } },
                     sumOfSaleCGST: { $sum: { $convert: { input: "$CGST", to: "double" } } },
@@ -251,35 +247,76 @@ const getFilingHistory = async (req, res) => {
                 }
             },
             {
-                $project: {
-                    _id: 1,
-                    sumOftotalAmount: 1,
-                    sumOfSaleSGST: 1,
-                    sumOfSaleCGST: 1,
-                    sumOfSaleIGST: 1,
-                    sumOfSaleOfIGST_CGST_SGSTtotalAmount: { $sum: ["$sumOfSaleSGST", "$sumOfSaleCGST", "$sumOfSaleIGST"] }
-                },
-                // filingData: 1,
-                debugStep1: "grouped data"
-            },
-
-            {
                 $lookup: {
                     from: 'b2bpurchasers',
-                    localField: '_id',
-                    foreignField: 'userGSTIN',
+                    let: { user_gstin: '$_id' },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $and: [
+                                        { $eq: ['$userGSTIN', '$$user_gstin'] },
+                                        { $gt: ['$invoiceDate', startDate] }
+                                    ]
+                                }
+                            }
+                        }
+                    ],
                     as: 'b2bData'
                 }
             },
+            { $unwind: "$b2bData" }, // Unwind the b2bData array to deconstruct the array
+            {
+                $group: {
+                    _id: "$_id",
+                    netSale: { $first: "$netSale" },
+                    sumOfSaleSGST: { $first: "$sumOfSaleSGST" },
+                    sumOfSaleIGST: { $first: "$sumOfSaleIGST" },
+                    sumOfSaleCGST: { $first: "$sumOfSaleCGST" },
+                    sumOfSaleOfIGST_CGST_SGST: { $first: "$sumOfSaleOfIGST_CGST_SGST" },
+                    sumOfSaleSGSTs: { $sum: { $convert: { input: "$b2bData.SGST", to: "double" } } },
+                    sumOfSaleIGSTs: { $sum: { $convert: { input: "$b2bData.IGST", to: "double" } } },
+                    sumOfSaleCGSTs: { $sum: { $convert: { input: "$b2bData.CGST", to: "double" } } },
+                    b2bData: { $push: "$b2bData" } // Reconstruct the b2bData array
+                }
+            },
             {
                 $project: {
                     _id: 1,
-                    sumOftotalAmount: 1,
-
-                    b2bPurchaserName: '$b2bData',
-                    debugStep2: "after lookup"
+                    netSale: 1,
+                    sumOfSaleSGST: 1,
+                    sumOfSaleCGST: 1,
+                    sumOfSaleIGST: 1,
+                    sumToBePaidToGovtITCUsed: { $sum: ["$sumOfSaleSGST", "$sumOfSaleCGST", "$sumOfSaleIGST"] },
+                    sumOfSaleSGSTs: 1,
+                    sumOfSaleIGSTs: 1,
+                    sumOfSaleCGSTs: 1,
+                    sumOfB2BGST_CGST_SGST: { $sum: ["$sumOfSaleSGSTs", "$sumOfSaleIGSTs", "$sumOfSaleCGSTs"] },
+                    b2bData: 1 // Include b2bData in the output
                 }
             },
+            {
+                $project: {
+                    _id: 1,
+                    netSale: 1,
+                    // b2bPurchaserName: '$b2bData',
+                    sumOfSaleSGST: 1,
+                    sumOfSaleCGST: 1,
+                    sumOfSaleIGST: 1,
+                    sumToBePaidToGovtITCUsed: 1,
+                    sumOfSaleSGSTs: 1,
+                    sumOfSaleIGSTs: 1,
+                    sumOfSaleCGSTs: 1,
+                    sumOfB2BGST_CGST_SGST: 1,
+                    itcRemainning: {
+                        $subtract: [
+                            {
+                                $sum: [iteRemaining, "$sumOfB2BGST_CGST_SGST"]
+                            }, "$sumToBePaidToGovtITCUsed"
+                        ]
+                    }
+                },
+            }
             // {
             //     $project: {
             //         _id: 0,
@@ -290,14 +327,26 @@ const getFilingHistory = async (req, res) => {
             //     }
             // }
         ]);
+
+        let obj = {
+            "_id": filingDataOfUser[0]._id,
+            "netSale": filingDataOfUser[0].netSale,
+            "sumToBePaidToGovtITCUsed": filingDataOfUser[0].sumToBePaidToGovtITCUsed,
+            "itcRemainning": filingDataOfUser[0].itcRemainning
+        }
+        if (filingDataOfUser[0].itcRemainning < 0) {
+            obj['itcRemainning'] = 0
+            obj.paidViaChalan = filingDataOfUser[0].itcRemainning
+        }
+
         // Check if any filing data is found
-        // if (!filingDataOfUser.length) {
-        //     console.log('No matching seller bills found.');
-        //     return res.send({ status: true, data: { sumOftotalAmount: 0, filingData: [] } });
-        // }
+        if (!filingDataOfUser.length) {
+            console.log('No matching seller bills found.');
+            return res.send({ status: true, data: { netsale: 0, filingData: [] } });
+        }
         console.log("Filing Data of User:", filingDataOfUser);
         // Send the filing data and sum of total amounts as response
-        return res.send({ status: true, data: filingDataOfUser });
+        return res.send({ status: true, data: obj });
 
     } catch (error) {
         // Handle any unexpected errors
