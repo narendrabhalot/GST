@@ -1,10 +1,15 @@
 
 const UserModel = require('../models/userModel');
-const sendSMS = require('../util/otp');
+const { sendSMS, verifySMS } = require('../util/otp');
+const clientId = process.env.CLIENT_ID;
+const clientSecret = process.env.CLIENT_SECRET;
 const { logInValidation, otpValidation } = require('../util/validate')
 // const otplib = require('otplib');
 
 const otpGenerator = require('otp-generator');
+
+
+let orderId;
 function generateOTP() {
     const digits = '0123456789';
     let otp = '';
@@ -14,7 +19,6 @@ function generateOTP() {
     return otp;
 }
 const sendOTP = async (req, res) => {
-
     const { mobileNumber } = req.body;
     try {
         const value = await logInValidation(req.body)
@@ -29,30 +33,30 @@ const sendOTP = async (req, res) => {
         if (!user) {
             return res.status(404).json({ status: false, message: 'User not found' });
         }
-        const otp = generateOTP();
-        console.log(otp)
+
+
         console.log(mobileNumber)
-        if (user.mobileNumber == '+919714500394' || user.mobileNumber == '+918817730702' || user.mobileNumber == '+918057481497') {
+        if (user.mobileNumber == '+919714500394' || user.mobileNumber == '+918057481497') {
             user.otp = { value: "123456" };
             await user.save();
         } else {
-            user.otp = { value: otp, Date: new Date() };
-            await user.save();
-            console.log(user)
-            await sendSMS(mobileNumber, otp)
+            let userOtp = await sendSMS(mobileNumber, 'SMS', null, null, 60, 6);
+            console.log(userOtp)
+            if (userOtp.errorMessage) {
+                return res.status(400).json({ status: false, message: 'Error sending OTP', error: userOtp.errorMessage });
+            }
+            if (userOtp.orderId) {
+                orderId = userOtp.orderId
+            }
         }
-
-
-
-
         res.status(201).send({ status: true, msg: "Otp sent successfully" })
     } catch (error) {
         console.error(error);
-        res.status(500).json({ status: false, message: 'Error sending OTP' });
+        return res.status(500).json({ status: false, message: 'Error sending OTP' });
     }
 };
 const verifyOTP = async (req, res) => {
-    const { otp } = req.body;
+    const { otp, mobileNumber } = req.body;
     try {
         const value = await otpValidation(req.body);
         if (value.error) {
@@ -61,18 +65,18 @@ const verifyOTP = async (req, res) => {
                 msg: value.error.message
             });
         }
-        const user = await UserModel.findOne({ 'otp.value': otp });
-        if (!user) {
-            return res.status(401).json({ status: false, message: 'Invalid OTP' });
+        let verifyOTP = await verifySMS(mobileNumber, orderId, otp);
+        console.log(verifyOTP)
+        if (verifyOTP.errorMessage) {
+            return res.status(400).json({ status: false, message: 'Error during verify OTP', error: verifyOTP.errorMessage });
         }
-        user.otp = undefined;
-        await user.save();
-
-        res.status(200).send({ status: true, message: 'OTP verification successful', data: user });
+        if (!verifyOTP.isOTPVerified) {
+            return res.status(400).json({ status: false, message: 'Error during verify OTP', error: verifyOTP.reason });
+        }
+        res.status(200).send({ status: true, message: 'OTP verification successful' });
     } catch (error) {
         console.error(error);
         res.status(500).json({ status: false, message: 'Error verifying OTP' });
     }
 };
-
 module.exports = { sendOTP, verifyOTP }

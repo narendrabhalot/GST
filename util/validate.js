@@ -40,6 +40,10 @@ const logInValidation = (data) => {
 const gstinRegex = /^[0-9]{2}[A-Za-z]{5}[0-9]{4}[A-Za-z]{1}[1-9A-Za-z]{1}[Zz][0-9A-Za-z]{1}$/;
 const otpValidation = (data) => {
     const otpSchema = Joi.object({
+        mobileNumber: Joi.string().trim().pattern(/^\+91[0-9]{10}$/).required().messages({
+            'any.required': "mobileNumber is required",
+            'string.pattern.base': "Invalid mobile number format",
+        }),
         otp: Joi.string().trim().min(6).max(6).required().messages({
             'any.required': "otp is required",
             "string.min": " otp length must be less than or equal to 6 characters long",

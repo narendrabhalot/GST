@@ -2,9 +2,9 @@
 const { planValidation, isValidObjectId, subPlanValidation } = require('../util/validate')
 const { default: mongoose } = require("mongoose");
 const planModel = require('../models/planModel'); // Assuming planModel is in a separate file
-const subPlanModel = require('../models/subPlanModel'); // Import the SubPlan model
 const userModel = require('../models/userModel');
 const moment = require('moment')
+const { updateUserPlanByGSTIN, getUser } = require('../controllers/userController')
 
 function checkPlanExpiration(purchaseDate) {
     try {
@@ -90,7 +90,6 @@ const createSubPlan = async (req, res) => {
                 msg: 'Plan not found with this plan name',
             });
         }
-
         const subPlanIndex = plan.subPlans.findIndex(subPlan => subPlan.subPlanName == req.body.subPlanName);
         if (subPlanIndex !== -1) {
             return res.status(404).send({
@@ -98,11 +97,7 @@ const createSubPlan = async (req, res) => {
                 msg: 'Already exist sub Plan with this  sub plan name ',
             });
         }
-
-
-
         let obj = { ...req.body }
-
         plan.subPlans.push(obj);
         const updatedPlan = await plan.save();
         console.log(updatedPlan);
@@ -122,7 +117,6 @@ const createSubPlan = async (req, res) => {
 };
 const updateSubPlan = async (req, res) => {
     try {
-
         const { planId, subPlanId } = req.params
         // Validate the updated sub-plan data
         const { error } = subPlanValidation(req.body);
@@ -132,7 +126,6 @@ const updateSubPlan = async (req, res) => {
                 msg: error.details[0].message,
             });
         }
-
         // Find the existing plan by planName
         const plan = await planModel.findById(planId);
         if (!planId) {
@@ -149,8 +142,26 @@ const updateSubPlan = async (req, res) => {
                 msg: 'Sub-plan not found with this id ',
             });
         }
-        // Update the sub-plan properties
-        plan.subPlans[subPlanIndex] = req.body;
+        let updatedPlanObj = {
+            planName: plan.planName,
+            subPlanName: req.body.subPlanName,
+            price: req.body.subPlanName,
+        }
+        const usersToUpdate = await userModel.find({ "isPlan.planName": plan.planName });
+        const updates = usersToUpdate.map(user => {
+            return {
+                updateOne: {
+                    filter: { _id: user._id }, // Update the specific user document
+                    update: { $set: { isPlan: updatedPlanObj } } // Update entire 'isPlan' field
+                }
+            };
+        });
+        await userModel.bulkWrite(updates);
+
+        //// update current subPlan  of user   if sub plan is same as a current updated subPlan 
+        if (plan.subPlans[subPlanIndex])
+            // Update the sub-plan properties
+            plan.subPlans[subPlanIndex] = req.body;
         // Save the updated plan
         // let updatedPlan = await planModel.findOneAndUpdate(
         //     { planName: planName },
@@ -232,7 +243,6 @@ const getPlanByGSTIN = async (req, res) => {
 }
 const getPlanWithSubPlan = async (req, res) => {
     try {
-
         const plans = await planModel.find().populate('subPlans').exec();
         res.json(plans);
     } catch (error) {

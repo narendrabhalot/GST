@@ -37,6 +37,7 @@ const registrationSchema = new mongoose.Schema({
     filingPeriod: {
         type: String,
         enum: ['Monthly', 'Quarterly'],
+        trim: true,
         required: true,
     },
     isPlan: {
