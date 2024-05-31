@@ -31,7 +31,7 @@ const sendOTP = async (req, res) => {
         let user = await UserModel.findOne({ mobileNumber: mobileNumber })
         // console.log(user)
         if (!user) {
-            return res.status(404).json({ status: false, message: 'User not found' });
+            return res.status(404).json({ status: false, message: 'Register first before login' });
         }
 
 

@@ -50,7 +50,7 @@ const getBillHistoryByUserType = async (req, res) => {
     let { startDate } = getDatesByPlanType(userPlanType, moment().month())
     console.log(startDate)
 
-
+let currentDate= 
     // startDate = moment(startDate, "DD/MM/YYYY").toDate();
     if (userType == 'seller') {
         const getSellerBillData = await sellerBillModel.find({ userGSTIN: gstin, invoiceDate: { $gt: startDate } })
