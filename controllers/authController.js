@@ -70,9 +70,9 @@ const verifyOTP = async (req, res) => {
             return res.status(404).json({ status: false, message: 'This mobileNumber number is not registerd ' });
         }
 
-        if (user.mobileNumber == '+919714500394') {
-            user.otp = undefined;
-            await user.save();
+        if (getUser.mobileNumber == '+919714500394') {
+            getUser.otp = undefined;
+            await getUser.save();
         } else {
             let verifyOTP = await verifySMS(mobileNumber, orderId, otp);
             console.log(verifyOTP)
