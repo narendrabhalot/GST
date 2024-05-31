@@ -46,10 +46,11 @@ const getBillHistoryByUserType = async (req, res) => {
         return res.status(404).send({ status: false, msg: "Unregistered GSTINno." });
     }
     let userPlanType = getUser.filingPeriod;
-    let startDate = getStartDate(userPlanType)
-    const utcTime = momenttz.utc(startDate);
-    const istTime = utcTime.tz('Asia/Kolkata');
-    console.log(istTime)
+
+    let { startDate } = getDatesByPlanType(userPlanType, moment().month())
+    console.log(startDate)
+
+
     // startDate = moment(startDate, "DD/MM/YYYY").toDate();
     if (userType == 'seller') {
         const getSellerBillData = await sellerBillModel.find({ userGSTIN: gstin, invoiceDate: { $gt: startDate } })
