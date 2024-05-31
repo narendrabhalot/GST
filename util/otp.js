@@ -23,8 +23,6 @@ async function sendSMS(mobileNumber, channel, hash = null, orderId = null, expir
         throw error;
     }
 }
-
-
 async function verifySMS(phoneNumber, orderId, otp) {
     console.log(phoneNumber, orderId, otp, clientId, clientSecret)
     console.log(typeof phoneNumber, typeof orderId, typeof otp, typeof clientId, typeof clientSecret)

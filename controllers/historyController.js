@@ -270,7 +270,7 @@ const getFilingHistory = async (req, res) => {
                         as: 'b2bData'
                     }
                 },
-                { $unwind: "$b2bData" }, // Unwind the b2bData array to deconstruct the array
+                { $unwind: { path: "$b2bData", preserveNullAndEmptyArrays: true } }, // Unwind the b2bData array to deconstruct the array
                 {
                     $group: {
                         _id: "$_id",
@@ -279,10 +279,41 @@ const getFilingHistory = async (req, res) => {
                         sumOfSaleIGST: { $first: "$sumOfSaleIGST" },
                         sumOfSaleCGST: { $first: "$sumOfSaleCGST" },
                         sumOfSaleOfIGST_CGST_SGST: { $first: "$sumOfSaleOfIGST_CGST_SGST" },
-                        sumOfSaleSGSTs: { $cond: { if: { $eq: ["$b2bData.SGST", null] }, then: 0, else: { $sum: { $convert: { input: "$b2bData.SGST", to: "double" } } } } },
-                        sumOfSaleIGSTs: { $cond: { if: { $eq: ["$b2bData.IGST", null] }, then: 0, else: { $sum: { $convert: { input: "$b2bData.IGST", to: "double" } } } } },
-                        sumOfSaleCGSTs: { $cond: { if: { $eq: ["$b2bData.CGST", null] }, then: 0, else: { $sum: { $convert: { input: "$b2bData.CGST", to: "double" } } } } },
-                        b2bData: { $push: "$b2bData" } // Reconstruct the b2bData array
+                        sumOfSaleSGSTs: {
+                            $sum: {
+                                $convert: {
+                                    input: { $ifNull: ["$b2bData.SGST", 0] },
+                                    to: "double"
+                                }
+                            }
+                        },
+                        sumOfSaleIGSTs: {
+                            $sum: {
+                                $convert: {
+                                    input: { $ifNull: ["$b2bData.IGST", 0] },
+                                    to: "double"
+                                }
+                            }
+                        },
+                        sumOfSaleCGSTs: {
+                            $sum: {
+                                $convert: {
+                                    input: { $ifNull: ["$b2bData.CGST", 0] },
+                                    to: "double"
+                                }
+                            }
+                        },
+                        b2bData: { $push: "$b2bData" }
+                    }
+                },
+                {
+                    $addFields: {
+                        sumOfSaleSGSTs: { $ifNull: ["$sumOfSaleSGSTs", 0] },
+                        sumOfSaleIGSTs: { $ifNull: ["$sumOfSaleIGSTs", 0] },
+                        sumOfSaleCGSTs: { $ifNull: ["$sumOfSaleCGSTs", 0] },
+                        sumOfB2BGST_CGST_SGST: {
+                            $add: ["$sumOfSaleSGSTs", "$sumOfSaleIGSTs", "$sumOfSaleCGSTs"]
+                        }
                     }
                 },
                 {
@@ -296,32 +327,32 @@ const getFilingHistory = async (req, res) => {
                         sumOfSaleSGSTs: 1,
                         sumOfSaleIGSTs: 1,
                         sumOfSaleCGSTs: 1,
-                        sumOfB2BGST_CGST_SGST: { $sum: ["$sumOfSaleSGSTs", "$sumOfSaleIGSTs", "$sumOfSaleCGSTs"] },
+                        sumOfB2BGST_CGST_SGST: 1,
                         b2bData: 1 // Include b2bData in the output
                     }
                 },
-                {
-                    $project: {
-                        _id: 1,
-                        netSale: 1,
-                        // b2bPurchaserName: '$b2bData',
-                        sumOfSaleSGST: 1,
-                        sumOfSaleCGST: 1,
-                        sumOfSaleIGST: 1,
-                        sumToBePaidToGovtITCUsed: 1,
-                        sumOfSaleSGSTs: 1,
-                        sumOfSaleIGSTs: 1,
-                        sumOfSaleCGSTs: 1,
-                        sumOfB2BGST_CGST_SGST: 1,
-                        itcRemainning: {
-                            $subtract: [
-                                {
-                                    $sum: [itcRemaining, "$sumOfB2BGST_CGST_SGST"]
-                                }, "$sumToBePaidToGovtITCUsed"
-                            ]
-                        }
-                    },
-                }
+                // {
+                //     $project: {
+                //         _id: 1,
+                //         netSale: 1,
+                //         // b2bPurchaserName: '$b2bData',
+                //         sumOfSaleSGST: 1,
+                //         sumOfSaleCGST: 1,
+                //         sumOfSaleIGST: 1,
+                //         sumToBePaidToGovtITCUsed: 1,
+                //         sumOfSaleSGSTs: 1,
+                //         sumOfSaleIGSTs: 1,
+                //         sumOfSaleCGSTs: 1,
+                //         sumOfB2BGST_CGST_SGST: 1,
+                //         itcRemainning: {
+                //             $subtract: [
+                //                 {
+                //                     $sum: [itcRemaining, "$sumOfB2BGST_CGST_SGST"]
+                //                 }, "$sumToBePaidToGovtITCUsed"
+                //             ]
+                //         }
+                //     },
+                // }
 
             ]);
             console.log(filingDataOfUser)
