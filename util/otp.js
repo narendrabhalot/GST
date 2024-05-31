@@ -3,7 +3,7 @@ const { UserDetail } = require('otpless-node-js-auth-sdk');
 const clientId = process.env.CLIENT_ID;
 const clientSecret = process.env.CLIENT_SECRET;
 console.log(clientId, clientSecret)
-async function sendSMS(mobileNumber, channel, hash = null, orderId = null, expiry = 120, otpLength = 6) {
+async function sendSMS(mobileNumber, channel, hash = null, orderId = null, expiry, otpLength = 6) {
     console.log(`Sending OTP to: ${mobileNumber} channel: ${channel}`);
     try {
         const response = await UserDetail.sendOTP(

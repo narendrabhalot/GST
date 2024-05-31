@@ -40,7 +40,7 @@ const sendOTP = async (req, res) => {
             user.otp = { value: "123456" };
             await user.save();
         } else {
-            let userOtp = await sendSMS(mobileNumber, 'SMS', null, null, 60, 6);
+            let userOtp = await sendSMS(mobileNumber, 'SMS', null, null, 120, 6);
             console.log(userOtp)
             if (userOtp.errorMessage) {
                 return res.status(400).json({ status: false, message: 'Error sending OTP', error: userOtp.errorMessage });
@@ -65,6 +65,10 @@ const verifyOTP = async (req, res) => {
                 msg: value.error.message
             });
         }
+        let getUser = await UserModel.findOne({ mobileNumber: mobileNumber })
+        if (!getUser) {
+            return res.status(404).json({ status: false, message: 'This mobileNumber number is not registerd ' });
+        }
         let verifyOTP = await verifySMS(mobileNumber, orderId, otp);
         console.log(verifyOTP)
         if (verifyOTP.errorMessage) {
@@ -73,7 +77,7 @@ const verifyOTP = async (req, res) => {
         if (!verifyOTP.isOTPVerified) {
             return res.status(400).json({ status: false, message: 'Error during verify OTP', error: verifyOTP.reason });
         }
-        res.status(200).send({ status: true, message: 'OTP verification successful' });
+        res.status(200).send({ status: true, message: 'OTP verification successful', data: getUser });
     } catch (error) {
         console.error(error);
         res.status(500).json({ status: false, message: 'Error verifying OTP' });

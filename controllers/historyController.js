@@ -225,8 +225,10 @@ const updateBillHistory = async (req, res) => {
 //     }
 // };
 const getFilingHistory = async (req, res) => {
+
     try {
-        let currentDate = moment().add(5, 'hours').add(30, 'minutes').toString()
+        const IST_TIMEZONE = 'Asia/Kolkata';
+        let currentDate = moment.tz().add(5, 'hours').add(30, 'minutes').toString()
 
         let { userGSTIN } = req.params;
         const getFilingDataForMonth = async (sd, ed, itcRemaining, userGSTIN, startedMonth) => {
@@ -277,9 +279,9 @@ const getFilingHistory = async (req, res) => {
                         sumOfSaleIGST: { $first: "$sumOfSaleIGST" },
                         sumOfSaleCGST: { $first: "$sumOfSaleCGST" },
                         sumOfSaleOfIGST_CGST_SGST: { $first: "$sumOfSaleOfIGST_CGST_SGST" },
-                        sumOfSaleSGSTs: { $sum: { $convert: { input: "$b2bData.SGST", to: "double" } } },
-                        sumOfSaleIGSTs: { $sum: { $convert: { input: "$b2bData.IGST", to: "double" } } },
-                        sumOfSaleCGSTs: { $sum: { $convert: { input: "$b2bData.CGST", to: "double" } } },
+                        sumOfSaleSGSTs: { $cond: { if: { $eq: ["$b2bData.SGST", null] }, then: 0, else: { $sum: { $convert: { input: "$b2bData.SGST", to: "double" } } } } },
+                        sumOfSaleIGSTs: { $cond: { if: { $eq: ["$b2bData.IGST", null] }, then: 0, else: { $sum: { $convert: { input: "$b2bData.IGST", to: "double" } } } } },
+                        sumOfSaleCGSTs: { $cond: { if: { $eq: ["$b2bData.CGST", null] }, then: 0, else: { $sum: { $convert: { input: "$b2bData.CGST", to: "double" } } } } },
                         b2bData: { $push: "$b2bData" } // Reconstruct the b2bData array
                     }
                 },
@@ -324,9 +326,9 @@ const getFilingHistory = async (req, res) => {
             ]);
             console.log(filingDataOfUser)
 
-            if (filingDataOfUser.length <= 0) {
-                return "No data available"
-            }
+            // if (filingDataOfUser.length <= 0) {
+            //     return "No data available"
+            // }
             // Prepare and return the response object
             let quarterName = `${moment(sd).format('MMMM')}-${moment(ed).format('MMMM')}`
             const obj = {
@@ -348,7 +350,6 @@ const getFilingHistory = async (req, res) => {
             return res.status(404).send({ status: false, message: "User not found" });
         }
         let { itcRemaining, createdAt, filingPeriod } = getUserDetail
-
         let dateObj = new Date(createdAt).getMonth();
         // Determine user's plan type and calculate the start date
         let startedMonth = new Date().getMonth() !== new Date(createdAt).getMonth() ? new Date(createdAt).getMonth() : new Date().getMonth()
@@ -374,7 +375,7 @@ const getFilingHistory = async (req, res) => {
 
                 const previousQuarters = [];
                 for (let i = 0; i < quarters.length; i++) {
-                    const IST_TIMEZONE = 'Asia/Kolkata';
+
                     const { name, startMonth, endMonth } = quarters[i];
 
                     // Create startDate and endDate objects with timezone and formatting
@@ -432,19 +433,18 @@ const getFilingHistory = async (req, res) => {
                 }
                 return previousQuarters;
             }
+            currentDate = new Date('2025-02-25');
+
+            console.log("currentDate is ", currentDate)
             let datesforQuarterlyUser = getPreviousQuarters(currentDate)
+            console.log("datesforQuarterlyUser is  ", datesforQuarterlyUser)
             for (let item of datesforQuarterlyUser) {
                 let { startDate, endDate } = item
                 console.log(createdAt, endDate)
-
                 console.log("nare")
                 let datas = await getFilingDataForMonth(startDate, endDate, itcRemaining, userGSTIN, startedMonth)
-
                 filingData.push(datas)
-
-
             }
-
         }
 
         // Array to store the filing data for all months
