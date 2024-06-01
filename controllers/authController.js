@@ -1,6 +1,7 @@
 
 const UserModel = require('../models/userModel');
 const { sendSMS, verifySMS } = require('../util/otp');
+const jwt = require('jsonwebtoken')
 const clientId = process.env.CLIENT_ID;
 const clientSecret = process.env.CLIENT_SECRET;
 const { logInValidation, otpValidation } = require('../util/validate')
@@ -81,13 +82,13 @@ const verifyOTP = async (req, res) => {
             }
             if (!verifyOTP.isOTPVerified) {
                 return res.status(400).json({ status: false, message: 'Error during verify OTP', error: verifyOTP.reason });
-            }   
+            }
         }
         const token = jwt.sign({ userId: getUser._id.toString() }, process.env.JWT_SECRET);
         return res.status(200).send({ status: true, message: 'OTP verification successful', data: getUser, token: token, });
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ status: false, message: 'Error verifying OTP' });
+        return res.status(500).json({ status: false, message: 'Error verifying OTP', error: error.message });
     }
 };
 module.exports = { sendOTP, verifyOTP }
