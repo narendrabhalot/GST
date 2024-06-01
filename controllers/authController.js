@@ -85,7 +85,7 @@ const verifyOTP = async (req, res) => {
             }
         }
         const token = jwt.sign({ userId: getUser._id.toString() }, process.env.JWT_SECRET);
-        return res.status(200).send({ status: true, message: 'OTP verification successful', data: getUser, token: token, });
+        return res.status(200).send({ status: true, message: 'OTP verification successful', data: getUser, token: token });
     } catch (error) {
         console.error(error);
         return res.status(500).json({ status: false, message: 'Error verifying OTP', error: error.message });
