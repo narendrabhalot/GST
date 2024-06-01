@@ -50,7 +50,7 @@ const getBillHistoryByUserType = async (req, res) => {
     let { startDate } = getDatesByPlanType(userPlanType, moment().month())
     console.log(startDate)
 
-let currentDate= 
+
     // startDate = moment(startDate, "DD/MM/YYYY").toDate();
     if (userType == 'seller') {
         const getSellerBillData = await sellerBillModel.find({ userGSTIN: gstin, invoiceDate: { $gt: startDate } })
@@ -62,7 +62,7 @@ let currentDate=
     } else {
         let getPurchaserBillData = await purchaserBillModel.find({ userGSTIN: gstin, invoiceDate: { $gt: startDate } }); // Convert startDate to Date object
         if (getPurchaserBillData.length > 0) {
-            return res.status(400).send({ status: true, msg: "Purchaser bills retrieved successfully", data: getPurchaserBillData });
+            return res.status(200).send({ status: true, msg: "Purchaser bills retrieved successfully", data: getPurchaserBillData });
         } else {
             return res.status(400).send({ status: true, msg: "No purchaser bills available" });
         }
