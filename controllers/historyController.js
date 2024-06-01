@@ -101,60 +101,70 @@ const getImageHistoryByUserType = async (req, res) => {
 const updateBillHistory = async (req, res) => {
     // 1. Validate required fields with a single destructuring and early return for clarity
     const { billId, billType } = req.params;
-    let { userGSTIN, invoiceNo, invoiceDate, sellerGSTIN, b2bPurchaserName, purchaserGSTIN, sellerName, totalAmount, gstRate, grandTotal, totalTaxPaid, Cess, ...rest } = req.body
+    const {
+        userGSTIN,
+        invoiceNo,
+        invoiceDate,
+        sellerGSTIN,
+        b2bPurchaserName,
+        purchaserGSTIN,
+        sellerName,
+        purchaserName,
+        totalAmount,
+        gstRate,
+        grandTotal,
+        totalTaxPaid,
+        Cess,
+        ...rest
+    } = req.body;
 
     if (!billId || !billType || !Object.keys(req.body).length) {
         return res.status(400).send({ status: false, msg: "Missing required fields: billId, billType, or updated data in request body" });
     }
     if (Object.keys(rest).length > 0) {
-        return res.status(400).send({ status: false, message: `Unexpected properties found in request body like ${Object.keys(rest)} ` })
-    }
-    // 2. Destructure and validate request body using a Set for performance
-
-    if (Object.keys(rest).length > 0) {
         return res.status(400).send({ status: false, message: `Unexpected properties found in request body: ${Object.keys(rest).join(', ')}` });
     }
 
-    // 3. Validate GST rate using a Set for efficiency and early return
+    // 2. Validate GST rate using a Set for efficiency and early return
     const validGSTRates = new Set([5, 12, 18, 28]);
-    if (!validGSTRates.has(req.body.gstRate)) {
+    if (!validGSTRates.has(gstRate)) {
         return res.status(400).send({ status: false, msg: "Incorrect GST rate" });
     }
 
-    // 4. Determine bill model and calculate grand total efficiently
+    // 3. Determine bill model and calculate grand total efficiently
     const billModel = billType === 'seller' ? sellerBillModel : purchaserBillModel;
-    const validGrandAmount = Number(totalAmount) + (totalAmount * (gstRate / 100));
+    const validGrandAmount = Number(totalAmount) + (Number(totalAmount) * (gstRate / 100));
     if (validGrandAmount !== Number(grandTotal)) {
         return res.status(400).send({ status: false, msg: "Incorrect grand amount" });
     }
+
     const formattedDate = moment(invoiceDate, "DD/MM/YYYY").format("YYYY-MM-DD");
-    // 5. Combine validation with database check for efficiency
+
+    // 4. Combine validation with database check for efficiency
     const query = {
-        invoiceNo: req.body.invoiceNo.trim(),
+        invoiceNo: invoiceNo.trim(),
         invoiceDate: formattedDate,
-        sellerGSTIN: req.body.sellerGSTIN.trim(),
+        ...(billType === 'seller' ? { sellerGSTIN: sellerGSTIN.trim() } : { purchaserGSTIN: purchaserGSTIN.trim() }),
     };
+
     try {
         const existingBill = await billModel.find(query);
-        if (existingBill) {
-            let result = await existingBill.every(item => item._id.equals(billId));
-            if (!result) {
-                return res.send({ status: false, msg: "Combination of userBillGSTIN, invoiceDate, and invoiceNo already exists." })
-            }
+        if (existingBill.length > 0 && !existingBill.some(item => item._id.equals(billId))) {
+            return res.status(400).send({ status: false, msg: "Combination of userBillGSTIN, invoiceDate, and invoiceNo already exists." });
         }
     } catch (error) {
-        console.error('Error checking for existing bill:', error); // Log the error for debugging
+        console.error('Error checking for existing bill:', error);
         return res.status(500).send({ status: false, msg: "Internal server error" });
     }
 
-    // 6. Calculate SGST, CGST, and IGST using a ternary operator for conciseness
-    const getStateOfUser = req.body.userGSTIN.slice(0, 2);
-    const getStateOfSeller = req.body.sellerGSTIN.slice(0, 2);
-    const SGST = CGST = getStateOfUser === getStateOfSeller ? req.body.gstRate / 2 : 0;
-    const IGST = getStateOfUser !== getStateOfSeller ? req.body.gstRate : 0;
+    // 5. Calculate SGST, CGST, and IGST using a ternary operator for conciseness
+    const getStateOfUser = userGSTIN.slice(0, 2);
+    const getStateOfCounterparty = billType === 'seller' ? sellerGSTIN.slice(0, 2) : purchaserGSTIN.slice(0, 2);
+    SGST = CGST = getStateOfUser === getStateOfCounterparty ? gstRate / 2 : 0;
+    IGST = getStateOfUser !== getStateOfCounterparty ? gstRate : 0;
 
-    // 7. Update bill data and handle errors using findByIdAndUpdate with options
-    req.body.invoiceDate = formattedDate; // Update invoiceDate before update
+    // 6. Update bill data and handle errors using findByIdAndUpdate with options
+    req.body.invoiceDate = formattedDate;
     try {
         const updatedBill = await billModel.findByIdAndUpdate(billId, req.body, { new: true });
         if (!updatedBill) {
@@ -162,10 +172,11 @@ const updateBillHistory = async (req, res) => {
         }
         return res.status(200).send({ status: true, msg: "Data updated successfully" });
     } catch (error) {
-        console.error('Error updating bill:', error); // Log the error for debugging
+        console.error('Error updating bill:', error);
         return res.status(500).send({ status: false, msg: "Internal server error" });
     }
 };
+
 // const updateBillHistory = async (req, res) => {
 //     const { billId, billType } = req.params;
 //     // Validate required fields and return appropriate error response
