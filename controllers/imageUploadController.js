@@ -43,7 +43,9 @@ const uploadImage = async (req, res) => {
     }
 };
 const getImage = async (req, res) => {
-    const images = await sellerImageModel.find()
+    let userType = req.params.type
+    let modelName = userType == 'seller' ? sellerImageModel : purchaserImageModel
+    const images = await modelName.find()
     return res.status(200).send({ status: true, data: images })
 }
 const getImageByDateRange = async (req, res) => {

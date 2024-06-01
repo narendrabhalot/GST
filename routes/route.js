@@ -31,7 +31,7 @@ router.get('/getBill/:billType', getBillByDateRangeAndUserGSTIN)
 
 // Image Upload route
 router.post('/upload-image/:gstin/:userType', imageUpload, uploadImage)
-router.get('/images', getImage)
+router.get('/images/:type', getImage)
 router.get('/imageDate', getImageByDateRange)
 
 
