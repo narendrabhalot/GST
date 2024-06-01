@@ -1,7 +1,15 @@
 const Joi = require('joi');
 const mongoose = require("mongoose");
+const moment = require('moment');
+
 const validTabs = ["Filling history", "Sale history", "Purchaser history", "Reconcilition", "Image Sale", "Image Purchaser", "Excel Purchase", "Excel Sale", "Mannual Sale", "Mannual Purchaser"];
 const validateString = (errorMessage) => Joi.string().trim().required().messages({ 'any.required': errorMessage });
+const dateValidation = Joi.string().custom((value, helpers) => {
+    if (!moment(value, 'DD/MM/YYYY', true).isValid()) {
+        return helpers.message('Invoice date must be in DD/MM/YYYY format and valid');
+    }
+    return value;
+}, 'Custom date validation');
 const userValidation = (data) => {
     const userSchema = Joi.object({
         businessName: validateString("BusinessName is required"),
@@ -64,14 +72,12 @@ const sellerBillvalidation = (data) => {
             'string.length': "User GSTIN length must be 15 characters long",
         }),
         invoiceNo: Joi.string().trim().optional(),
-        invoiceDate: Joi.string().trim().pattern(/^(?:(?:31(\/|-|\.)(?:0?[13578]|1[02]))\1|(?:(?:29|30)(\/|-|\.)\2(?:0?[13-9]|1[0-2])\2))(?:(?:1[6-9]|[2-9]\d)?\d{2})$|^(?:29(\/|-|\.)0?2\3(?:(?:(?:1[6-9]|[2-9]\d)?(?:0[48]|[2468][048]|[13579][26])|(?:(?:16|[2468][048]|[3579][26])00))))$|^(?:(?:0?[1-9]|1\d|2[0-8])(\/|-|\.)(?:(?:0?[1-9])|(?:1[0-2]))\4(?:(?:1[6-9]|[2-9]\d)?\d{2}))$/).required().messages({
+        invoiceDate: dateValidation.required().messages({
             'any.required': "Invoice date is required",
-            'string.pattern.base': "Invoice date must be in DD/MM/YYYY format",
+            'string.custom': "Invoice date must be in DD/MM/YYYY format and valid",
         }),
-        // Rename sellerGSTIN to counterpartyGSTIN for clarity (optional)
-        sellerGSTIN: Joi.string().trim().length(15).pattern(/^[0-9]{2}[A-Za-z]{5}[0-9]{4}[A-Za-z]{1}[1-9A-Za-z]{1}[Zz][0-9A-Za-z]{1}$/).optional().messages({
+        sellerGSTIN: Joi.string().trim().length(15).pattern(gstinRegex).optional().messages({
             'string.pattern.base': "Invalid Seller GSTIN format",  // Corrected message
-            'any.required': "Seller GSTIN number is required",
             'string.length': "Seller GSTIN length must be 15 characters long",
         }),
         sellerName: Joi.string().trim().required().messages({
@@ -94,7 +100,6 @@ const sellerBillvalidation = (data) => {
             .messages({
                 'string.base': 'Invalid Cess value. Must be a string',
             })
-
     });
     return billSchema.validate(data);
 };
@@ -111,9 +116,9 @@ const purchaserBillvalidation = (data) => {
             'string.length': "User GSTIN length must be 15 characters long",
         }),
         invoiceNo: Joi.string().trim().optional(),
-        invoiceDate: Joi.string().trim().pattern(/^(?:(?:31(\/|-|\.)(?:0?[13578]|1[02]))\1|(?:(?:29|30)(\/|-|\.)\2(?:0?[13-9]|1[0-2])\2))(?:(?:1[6-9]|[2-9]\d)?\d{2})$|^(?:29(\/|-|\.)0?2\3(?:(?:(?:1[6-9]|[2-9]\d)?(?:0[48]|[2468][048]|[13579][26])|(?:(?:16|[2468][048]|[3579][26])00))))$|^(?:(?:0?[1-9]|1\d|2[0-8])(\/|-|\.)(?:(?:0?[1-9])|(?:1[0-2]))\4(?:(?:1[6-9]|[2-9]\d)?\d{2}))$/).required().messages({
+        invoiceDate: dateValidation.required().messages({
             'any.required': "Invoice date is required",
-            'string.pattern.base': "Invoice date must be in DD/MM/YYYY format",
+            'string.custom': "Invoice date must be in DD/MM/YYYY format and valid",
         }),
         purchaserGSTIN: Joi.string().trim().length(15).pattern(gstinRegex).required().messages({
             'string.pattern.base': "Invalid Purchaser GSTIN format",
