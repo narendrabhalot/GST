@@ -6,7 +6,7 @@ const clientSecret = process.env.CLIENT_SECRET;
 const { logInValidation, otpValidation } = require('../util/validate')
 // const otplib = require('otplib');
 
-const otpGenerator = require('otp-generator');
+
 
 
 let orderId;
@@ -81,13 +81,13 @@ const verifyOTP = async (req, res) => {
             }
             if (!verifyOTP.isOTPVerified) {
                 return res.status(400).json({ status: false, message: 'Error during verify OTP', error: verifyOTP.reason });
-            }
+            }   
         }
-
-        res.status(200).send({ status: true, message: 'OTP verification successful', data: getUser });
+        const token = jwt.sign({ userId: getUser._id.toString() }, process.env.JWT_SECRET);
+        return res.status(200).send({ status: true, message: 'OTP verification successful', data: getUser, token: token, });
     } catch (error) {
         console.error(error);
-        res.status(500).json({ status: false, message: 'Error verifying OTP' });
+        return res.status(500).json({ status: false, message: 'Error verifying OTP' });
     }
 };
 module.exports = { sendOTP, verifyOTP }
