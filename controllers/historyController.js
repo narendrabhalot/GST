@@ -50,9 +50,10 @@ const getBillHistoryByUserType = async (req, res) => {
         const { startDate } = getDatesByPlanType(userPlanType, moment().month());
 
         const formattedStartDate = moment(startDate, "DD/MM/YYYY").toDate(); // Convert to Date object
+        console.log(formattedStartDate)
 
         const billModel = userType === 'seller' ? sellerBillModel : purchaserBillModel;
-        const billData = await billModel.find({ userGSTIN: gstin, invoiceDate: { $gt: formattedStartDate } });
+        const billData = await billModel.find({ userGSTIN: gstin, invoiceDate: { $gte: formattedStartDate } });
         if (billData.length > 0) {
             return res.status(200).send({ status: true, msg: `Retrieved ${userType} bills successfully`, data: billData });
         } else {
@@ -79,7 +80,7 @@ const getImageHistoryByUserType = async (req, res) => {
         const { startDate } = getDatesByPlanType(userPlanType, moment().month());
         const formattedStartDate = moment(startDate, "DD/MM/YYYY").toDate(); // Convert to Date object
         const billModel = userType === 'seller' ? sellerImageModel : purchaserImageModel;
-        const imageData = await billModel.find({ userGSTIN: gstin, date: { $gt: formattedStartDate } });
+        const imageData = await billModel.find({ userGSTIN: gstin, date: { $gte: formattedStartDate } });
         if (imageData.length > 0) {
             return res.status(200).send({ status: true, msg: `${userType} image retrieved successfully`, data: imageData });
         } else {
