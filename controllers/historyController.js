@@ -226,7 +226,6 @@ const updateBillHistory = async (req, res) => {
 //     }
 // };
 const getFilingHistory = async (req, res) => {
-
     try {
         const IST_TIMEZONE = 'Asia/Kolkata';
         let currentDate = moment.tz().add(5, 'hours').add(30, 'minutes').toString()

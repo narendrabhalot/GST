@@ -64,7 +64,7 @@ const sellerBillvalidation = (data) => {
             'string.length': "User GSTIN length must be 15 characters long",
         }),
         invoiceNo: Joi.string().trim().optional(),
-        invoiceDate: Joi.string().trim().pattern(/^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/).required().messages({
+        invoiceDate: Joi.string().trim().pattern(/^(?:(?:31(\/|-|\.)(?:0?[13578]|1[02]))\1|(?:(?:29|30)(\/|-|\.)\2(?:0?[13-9]|1[0-2])\2))(?:(?:1[6-9]|[2-9]\d)?\d{2})$|^(?:29(\/|-|\.)0?2\3(?:(?:(?:1[6-9]|[2-9]\d)?(?:0[48]|[2468][048]|[13579][26])|(?:(?:16|[2468][048]|[3579][26])00))))$|^(?:(?:0?[1-9]|1\d|2[0-8])(\/|-|\.)(?:(?:0?[1-9])|(?:1[0-2]))\4(?:(?:1[6-9]|[2-9]\d)?\d{2}))$/).required().messages({
             'any.required': "Invoice date is required",
             'string.pattern.base': "Invoice date must be in DD/MM/YYYY format",
         }),
@@ -87,7 +87,14 @@ const sellerBillvalidation = (data) => {
         grandTotal: Joi.string().trim().required().messages({
             'any.required': "Grand Total is required",
         }),
-        Cess: Joi.string().optional()
+        Cess: Joi.string()
+            .trim()
+            .optional()
+            .allow('')
+            .messages({
+                'string.base': 'Invalid Cess value. Must be a string',
+            })
+
     });
     return billSchema.validate(data);
 };
@@ -104,7 +111,7 @@ const purchaserBillvalidation = (data) => {
             'string.length': "User GSTIN length must be 15 characters long",
         }),
         invoiceNo: Joi.string().trim().optional(),
-        invoiceDate: Joi.string().trim().pattern(/^(0[1-9]|[12][0-9]|3[01])\/(0[1-9]|1[0-2])\/\d{4}$/).required().messages({
+        invoiceDate: Joi.string().trim().pattern(/^(?:(?:31(\/|-|\.)(?:0?[13578]|1[02]))\1|(?:(?:29|30)(\/|-|\.)\2(?:0?[13-9]|1[0-2])\2))(?:(?:1[6-9]|[2-9]\d)?\d{2})$|^(?:29(\/|-|\.)0?2\3(?:(?:(?:1[6-9]|[2-9]\d)?(?:0[48]|[2468][048]|[13579][26])|(?:(?:16|[2468][048]|[3579][26])00))))$|^(?:(?:0?[1-9]|1\d|2[0-8])(\/|-|\.)(?:(?:0?[1-9])|(?:1[0-2]))\4(?:(?:1[6-9]|[2-9]\d)?\d{2}))$/).required().messages({
             'any.required': "Invoice date is required",
             'string.pattern.base': "Invoice date must be in DD/MM/YYYY format",
         }),
@@ -127,7 +134,14 @@ const purchaserBillvalidation = (data) => {
         grandTotal: Joi.string().trim().required().messages({
             'any.required': "Grand Total is required",
         }),
-        Cess: Joi.string().optional()
+        Cess: Joi.string()
+            .trim()
+            .optional()
+            .allow('')
+            .messages({
+                'string.base': 'Invalid Cess value. Must be a string',
+            })
+
     });
     return billSchema.validate(data);
 };
