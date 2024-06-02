@@ -49,6 +49,7 @@ const sendOTP = async (req, res) => {
                 orderId = userOtp.orderId
             }
         }
+        const token = jwt.sign({ userId: user._id.toString() }, process.env.JWT_SECRET);
         res.status(201).send({ status: true, msg: "Otp sent successfully" })
     } catch (error) {
         console.error(error);
@@ -83,7 +84,6 @@ const verifyOTP = async (req, res) => {
                 return res.status(400).json({ status: false, message: 'Error during verify OTP', error: verifyOTP.reason });
             }
         }
-
         res.status(200).send({ status: true, message: 'OTP verification successful', data: getUser });
     } catch (error) {
         console.error(error);

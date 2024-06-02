@@ -79,7 +79,7 @@ router.post('/adminLogIn', adminLogin)
 
 // for excel file router 
 router.post('/upload-excel/:billType/:id', excelUpload)   //// admin upload excel for apecific user GSTIN 
-router.post('/upload-b2bexcel', excelUpload, uploadB2BExcelFile)
+router.post('/upload-b2bexcel/:gstin', excelUpload, uploadB2BExcelFile)
 router.post('/upload-b2baexcel', excelUpload, uploadB2BAExcelFile)
 
 // for  reconciliation api 
