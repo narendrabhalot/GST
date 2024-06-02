@@ -1,9 +1,10 @@
 const fs = require('fs');
 const path = require('path');
 const xlsx = require('xlsx');
+const moment = require('moment')
 const Joi = require('joi');
 const b2bPurchaserModel = require('../models/b2bPurchaserModel');
-const { billValidation } = require("../util/validate");
+const { purchaserBillvalidation } = require("../util/validate");
 function mappingOfExcelData(data) {
     const finalMappingData = []
     const columnMapping = {
@@ -36,7 +37,6 @@ function mappingOfExcelData(data) {
             const normalizedKey = columnMapping[key] || key;
             normalizedRow[normalizedKey] = String(row[key]);
         }
-
         finalMappingData.push(normalizedRow)
     })
 
@@ -80,15 +80,20 @@ const uploadB2BExcelFile = async (req, res) => {
         const workbook = await xlsx.readFile(filePath);
         const worksheet = workbook.Sheets[sheetName];
         let data = xlsx.utils.sheet_to_json(worksheet, { range: range });
+        console.log("data is a ", data)
+        const mappingDatails = mappingOfExcelData(data)
+        console.log("mappingDatails is aa", mappingDatails)
 
-        const mappingDatais = mappingOfExcelData(data)
-
+        mappingDatails.forEach(invoice => {
+            const IST_TIMEZONE = 'Asia/Kolkata';
+            invoice.invoiceDate = moment.tz(invoice.invoiceDate, "DD/MM/YYYY", IST_TIMEZONE).add(5, 'hours').add(30, 'minutes').toDate().toString()
+        });
         const existingInvoiceMap = new Map();
         for (const invoice of await b2bPurchaserModel.find({
             $and: [
-                { purchaserGSTIN: { $in: mappingDatais.map(row => row.purchaserGSTIN) } },
-                { invoiceNo: { $in: mappingDatais.map(row => row.invoiceNo) } },
-                { invoiceDate: { $in: mappingDatais.map(row => new Date(row.invoiceDate)) } }
+                { purchaserGSTIN: { $in: mappingDatails.map(row => row.purchaserGSTIN) } },
+                { invoiceNo: { $in: mappingDatails.map(row => row.invoiceNo) } },
+                { invoiceDate: { $in: mappingDatails.map(row => new Date(row.invoiceDate)) } }
             ]
         }
         )) {
@@ -97,14 +102,14 @@ const uploadB2BExcelFile = async (req, res) => {
         console
             .log("existingInvoiceMap is ", existingInvoiceMap)
         const results = []
-        for (let item of mappingDatais) {
+        for (let item of mappingDatails) {
             let { invoiceNo, invoiceDate, purchaserGSTIN, purchaserName, totalAmount, gstRate, grandTotal, billType, SGST, CGST, IGST, Cess } = item;
-            let sendDatais = { invoiceNo, invoiceDate, purchaserGSTIN, purchaserName, totalAmount, gstRate, grandTotal, billType, Cess, userGSTIN: getUserGSTIN }
-            const billValidationResult = await billValidation(sendDatais);
-            if (billValidationResult.error) {
-                results.push({ errorMessage: billValidationResult.error.details[0].message, errorRow: item })
-                continue;
-            }
+            let sendDatais = { invoiceNo, invoiceDate, purchaserGSTIN, purchaserName, totalAmount, gstRate, grandTotal, billType, Cess, userGSTIN: getUserGSTIN, billType: 'purchaser' }
+            // const billValidationResult = await purchaserBillvalidation(sendDatais);
+            // if (billValidationResult.error) {
+            //     results.push({ errorMessage: billValidationResult.error.details[0].message, errorRow: item })
+            //     continue;
+            // }
             const key = `${purchaserGSTIN}-${invoiceNo}-${invoiceDate}`;
             if (existingInvoiceMap.has(key)) {
                 continue;

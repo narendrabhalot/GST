@@ -7,22 +7,18 @@ const reconcilisionSchema = new mongoose.Schema({
     },
     b2bInvoiceNo: {
         type: String,
-
         trim: true,
     },
     b2bInvoiceDate: {
-        type: String,
-
+        type: Date,
         trim: true,
     },
     b2bPurchaserGSTIN: {
         type: String,
-
         trim: true,
     },
     b2bIGrandTotal: {
         type: String,
-
         trim: true,
     },
     b2bCess: {
@@ -50,8 +46,7 @@ const reconcilisionSchema = new mongoose.Schema({
         trim: true,
     },
     invoiceDate: {
-        type: String,
-
+        type: Date,
         trim: true,
     },
     purchaserGSTIN: {

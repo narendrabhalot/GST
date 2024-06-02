@@ -106,37 +106,40 @@ const createReconciliation = async (req, res) => {
 const getReconciliationByGSTIN = async (req, res) => {
     try {
         const gstin = req.params.gstin
+        const IST_TIMEZONE = 'Asia/Kolkata';
         function getFinancialYearStartDate() {
             const currentDate = moment();
             const financialMonth = 2;
             console.log(currentDate.month())
             if (financialMonth <= currentDate.month()) {
-                return moment([currentDate.year(), currentDate.month(), 1]).format('DD/MM/YYYY');
+                return moment.tz(`${moment().year()}-03-01`, "YYYY-MM-DD", "Asia/Kolkata").add(5, 'hours').add(30, 'minutes').toDate().toString();
             } else {
-                return moment([currentDate.year() - 1, currentDate.month(), 1]).format('DD/MM/YYYY');
+                return moment.tz(`${moment().year() - 1}-03-01`, "YYYY-MM-DD", "Asia/Kolkata").add(5, 'hours').add(30, 'minutes').toDate().toString();
             }
         }
         let startDate = getFinancialYearStartDate();
         console.log(startDate)
-        startDate = moment(startDate, 'DD/MM/YYYY');
+
         console.log(startDate)
-        const endDate = moment().format('DD/MM/YYYY');
+        startDate = moment.tz(startDate, IST_TIMEZONE).add(5, 'hours').add(30, 'minutes').toDate().toString()
+        console.log(startDate)
+        const endDate = moment.tz(IST_TIMEZONE).add(5, 'hours').add(30, 'minutes').toDate().toString()
         const reconciliationRecords = await reconcilitionModel.find({ userGSTIN: gstin });
-        const filteredReconciliationRecords = reconciliationRecords.filter(item => {
-            try {
-                const itemDate = moment(item.b2bInvoiceDate, 'DD/MM/YYYY');
-                return itemDate.isValid() && itemDate.isAfter(startDate);
-            } catch (error) {
-                console.error(`Error parsing invoice date for item: ${item.b2bInvoiceDate}`, error);
-                return false;
-            }
-        });
-        if (!filteredReconciliationRecords.length) {
+        // const filteredReconciliationRecords = reconciliationRecords.filter(item => {
+        //     try {
+        //         const itemDate = moment(item.b2bInvoiceDate, 'DD/MM/YYYY');
+        //         return itemDate.isValid() && itemDate.isAfter(startDate);
+        //     } catch (error) {
+        //         console.error(`Error parsing invoice date for item: ${item.b2bInvoiceDate}`, error);
+        //         return false;
+        //     }
+        // });
+        if (!reconciliationRecords.length) {
             return res.status(404).json({ status: false, message: "No reconciliation record found" });
         }
         return res.status(200).json({
             status: true,
-            data: filteredReconciliationRecords
+            data: reconciliationRecords
         });
     } catch (error) {
         console.error("Error retrieving reconciliation records:", error);
