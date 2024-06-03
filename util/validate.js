@@ -2,7 +2,7 @@ const Joi = require('joi');
 const mongoose = require("mongoose");
 const moment = require('moment');
 
-const validTabs = ["Filling history", "Sale history", "Purchaser history", "Reconcilition", "Image Sale", "Image Purchaser", "Excel Purchase", "Excel Sale", "Mannual Sale", "Mannual Purchaser"];
+const validTabs = ["Filling history", "Sale history", "Purchaser history", "ImageSale history", "ImagePurchaser history", "Reconcilition", "Image Sale", "Image Purchaser", "Excel Purchase", "Excel Sale", "Mannual Sale", "Mannual Purchaser"];
 const validateString = (errorMessage) => Joi.string().trim().required().messages({ 'any.required': errorMessage });
 const dateValidation = Joi.string().custom((value, helpers) => {
     if (!moment(value, 'DD/MM/YYYY', true).isValid()) {
@@ -99,7 +99,14 @@ const sellerBillvalidation = (data) => {
             .allow('')
             .messages({
                 'string.base': 'Invalid Cess value. Must be a string',
-            })
+            }),
+        // sellerType: Joi.string()
+        //     .trim()
+        //     .optional().valid("cashSale", "gstSale")
+        //     .messages({
+        //         'any.only': 'Invalid seller type. Must be either cashSale or gstSale',
+        //         'string.base': 'Invalid Cess value. Must be a string',
+        //     })
     });
     return billSchema.validate(data);
 };

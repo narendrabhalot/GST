@@ -184,7 +184,19 @@ const updateSubPlan = async (req, res) => {
 };
 const getPlan = async (req, res) => {
     try {
-        const getPlan = await planModel.find();
+        const getPlan = await planModel.aggregate([
+            { $unwind: "$subPlans" },
+            { $sort: { "subPlans.subPlanPrice": 1 } },
+            {
+                $group: {
+                    _id: "$_id",
+                    subPlans: { $push: "$subPlans" },
+                    // Add other fields you want to preserve
+                }
+            },
+            { $project: { subPlans: 1 } } // Adjust projection as needed
+        ]);
+
         if (getPlan.length > 0) {
             return res.status(200).send({ status: true, planData: getPlan });
         } else {

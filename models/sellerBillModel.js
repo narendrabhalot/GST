@@ -63,6 +63,11 @@ const sellerBillSchema = new mongoose.Schema({
         trim: true,
         default: 0,
     },
+    // sellerType: {
+    //     type: String,
+    //     trim: true,
+    //     enum: ["cashSale", "gstSale"],
+    // },
 }, { timestamps: true });
 
 sellerBillSchema.virtual('formattedDate').get(function () {

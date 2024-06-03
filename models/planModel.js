@@ -14,7 +14,7 @@ const subPlanSchema = new mongoose.Schema({
     tabs: {
         type: [{
             type: String,
-            enum: ["Filling history", "Sale history", "Purchaser history", "Reconcilition", "Image Sale", "Image Purchaser", "Excel Purchase", "Excel Sale", "Mannual Sale", "Mannual Purchaser"]
+            enum: ["Filling history", "Sale history", "Purchaser history", "ImageSale history", "ImagePurchaser history", "Reconcilition", "Image Sale", "Image Purchaser", "Excel Purchase", "Excel Sale", "Mannual Sale", "Mannual Purchaser"]
         }],
         required: true
     },
