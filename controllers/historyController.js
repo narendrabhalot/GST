@@ -242,7 +242,7 @@ const getFilingHistory = async (req, res) => {
                 {
                     $match: {
                         userGSTIN: userGSTIN,
-                        invoiceDate: { $gt: sd, $lt: ed }
+                        invoiceDate: { $gte: sd, $lt: ed }
                     }
                 },
                 {
@@ -336,28 +336,28 @@ const getFilingHistory = async (req, res) => {
                         b2bData: 1 // Include b2bData in the output
                     }
                 },
-                // {
-                //     $project: {
-                //         _id: 1,
-                //         netSale: 1,
-                //         // b2bPurchaserName: '$b2bData',
-                //         sumOfSaleSGST: 1,
-                //         sumOfSaleCGST: 1,
-                //         sumOfSaleIGST: 1,
-                //         sumToBePaidToGovtITCUsed: 1,
-                //         sumOfSaleSGSTs: 1,
-                //         sumOfSaleIGSTs: 1,
-                //         sumOfSaleCGSTs: 1,
-                //         sumOfB2BGST_CGST_SGST: 1,
-                //         itcRemainning: {
-                //             $subtract: [
-                //                 {
-                //                     $sum: [itcRemaining, "$sumOfB2BGST_CGST_SGST"]
-                //                 }, "$sumToBePaidToGovtITCUsed"
-                //             ]
-                //         }
-                //     },
-                // }
+                {
+                    $project: {
+                        _id: 1,
+                        netSale: 1,
+                        // b2bPurchaserName: '$b2bData',
+                        sumOfSaleSGST: 1,
+                        sumOfSaleCGST: 1,
+                        sumOfSaleIGST: 1,
+                        sumToBePaidToGovtITCUsed: 1,
+                        sumOfSaleSGSTs: 1,
+                        sumOfSaleIGSTs: 1,
+                        sumOfSaleCGSTs: 1,
+                        sumOfB2BGST_CGST_SGST: 1,
+                        itcRemainning: {
+                            $subtract: [
+                                {
+                                    $sum: [itcRemaining, "$sumOfB2BGST_CGST_SGST"]
+                                }, "$sumToBePaidToGovtITCUsed"
+                            ]
+                        }
+                    },
+                }
 
             ]);
             console.log(filingDataOfUser)
@@ -366,19 +366,19 @@ const getFilingHistory = async (req, res) => {
             //     return "No data available"
             // }
             // Prepare and return the response object
-            let quarterName = `${moment(sd).format('MMMM')}-${moment(ed).format('MMMM')}`
-            const obj = {
-                _id: filingDataOfUser[0]._id,
-                month: quarterName,
-                netSale: filingDataOfUser[0].netSale,
-                sumToBePaidToGovtITCUsed: filingDataOfUser[0].sumToBePaidToGovtITCUsed,
-                itcRemainning: filingDataOfUser[0].itcRemainning,
-            };
-            if (filingDataOfUser[0].itcRemainning < 0) {
-                obj['itcRemainning'] = 0
-                obj.paidViaChalan = filingDataOfUser[0].itcRemaining
-            }
-            return obj;
+            // let quarterName = `${moment(sd).format('MMMM')}-${moment(ed).format('MMMM')}`
+            // const obj = {
+            //     _id: filingDataOfUser[0]._id,
+            //     month: quarterName,
+            //     netSale: filingDataOfUser[0].netSale,
+            //     sumToBePaidToGovtITCUsed: filingDataOfUser[0].sumToBePaidToGovtITCUsed,
+            //     itcRemainning: filingDataOfUser[0].itcRemainning,
+            // };
+            // if (filingDataOfUser[0].itcRemainning < 0) {
+            //     obj['itcRemainning'] = 0
+            //     obj.paidViaChalan = filingDataOfUser[0].itcRemaining
+            // }
+            return filingDataOfUser;
         };
         // Retrieve user details from the database
         let getUserDetail = await userModel.findOne({ gstin: userGSTIN });
@@ -393,13 +393,14 @@ const getFilingHistory = async (req, res) => {
         const filingData = [];
         itcRemaining = filingData.length > 0 ? filingData.pop().itcRemaining : 0;
         if (filingPeriod == 'Monthly') {
+            consol
             for (let i = 0; i <= new Date().getMonth(); i++) {
                 let { startDate, endDate } = await getDatesByPlanType(filingPeriod, startedMonth + i);
                 let result = await getFilingDataForMonth(startDate, endDate, Number(itcRemaining), userGSTIN, startedMonth + i)
                 filingData.push(result)
             }
         } else {
-            function getPreviousQuarters(inputDate) {
+            async function getPreviousQuarters(inputDate) {
                 let date = inputDate.toString()
                 console.log("date is a ", date)
                 const quarters = [
@@ -470,9 +471,8 @@ const getFilingHistory = async (req, res) => {
                 return previousQuarters;
             }
             currentDate = new Date('2025-02-25');
-
             console.log("currentDate is ", currentDate)
-            let datesforQuarterlyUser = getPreviousQuarters(currentDate)
+            let datesforQuarterlyUser = await getPreviousQuarters(currentDate)
             console.log("datesforQuarterlyUser is  ", datesforQuarterlyUser)
             for (let item of datesforQuarterlyUser) {
                 let { startDate, endDate } = item

@@ -49,7 +49,7 @@ const sendOTP = async (req, res) => {
                 orderId = userOtp.orderId
             }
         }
-        const token = jwt.sign({ userId: user._id.toString() }, process.env.JWT_SECRET);
+
         res.status(201).send({ status: true, msg: "Otp sent successfully" })
     } catch (error) {
         console.error(error);

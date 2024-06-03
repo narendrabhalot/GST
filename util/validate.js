@@ -2,7 +2,7 @@ const Joi = require('joi');
 const mongoose = require("mongoose");
 const moment = require('moment');
 
-const validTabs = ["Filling history", "Sale history", "Purchaser history", "ImageSale history", "ImagePurchaser history", "Reconcilition", "Image Sale", "Image Purchaser", "Excel Purchase", "Excel Sale", "Mannual Sale", "Mannual Purchaser"];
+const validTabs = ["Filling history", "Sale history", "Purchaser history", "Reconcilition", "Image Sale", "Image Purchaser", "Excel Purchase", "Excel Sale", "Mannual Sale", "Mannual Purchaser"];
 const validateString = (errorMessage) => Joi.string().trim().required().messages({ 'any.required': errorMessage });
 const dateValidation = Joi.string().custom((value, helpers) => {
     if (!moment(value, 'DD/MM/YYYY', true).isValid()) {
