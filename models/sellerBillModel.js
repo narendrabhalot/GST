@@ -19,6 +19,8 @@ const sellerBillSchema = new mongoose.Schema({
     sellerGSTIN: {
         type: String,
         trim: true,
+        uppercase: true,
+        set: (sellerGSTIN) => sellerGSTIN.toUpperCase()
     },
     sellerName: {
         type: String,
@@ -63,11 +65,12 @@ const sellerBillSchema = new mongoose.Schema({
         trim: true,
         default: 0,
     },
-    // sellerType: {
-    //     type: String,
-    //     trim: true,
-    //     enum: ["cashSale", "gstSale"],
-    // },
+    sellerType: {
+        type: String,
+        trim: true,
+        required: true,
+        enum: ["cashSale", "gstSale"],
+    },
 }, { timestamps: true });
 
 sellerBillSchema.virtual('formattedDate').get(function () {

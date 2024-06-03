@@ -20,6 +20,8 @@ const purchaserBillSchema = new mongoose.Schema({
         type: String,
         required: true,
         trim: true,
+        uppercase: true,
+        set: (purchaserGSTIN) => purchaserGSTIN.toUpperCase()
     },
     purchaserName: {
         type: String,

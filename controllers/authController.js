@@ -49,7 +49,6 @@ const sendOTP = async (req, res) => {
                 orderId = userOtp.orderId
             }
         }
-
         res.status(201).send({ status: true, msg: "Otp sent successfully" })
     } catch (error) {
         console.error(error);

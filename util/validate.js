@@ -66,20 +66,17 @@ const sellerBillvalidation = (data) => {
             'any.only': 'Invalid bill type. Must be either "seller" or "purchaser"',
             'any.required': 'Bill type is required'
         }),
-        userGSTIN: Joi.string().trim().length(15).pattern(gstinRegex).required().messages({
+        userGSTIN: Joi.string().trim().length(15).pattern(gstinRegex).required().optional().messages({
             'string.pattern.base': "Invalid User GSTIN format",
             'any.required': "User GSTIN number is required",
             'string.length': "User GSTIN length must be 15 characters long",
         }),
-        invoiceNo: Joi.string().trim().optional(),
+        invoiceNo: Joi.string().trim().optional().allow(''),
         invoiceDate: dateValidation.required().messages({
             'any.required': "Invoice date is required",
             'string.custom': "Invoice date must be in DD/MM/YYYY format and valid",
         }),
-        sellerGSTIN: Joi.string().trim().length(15).pattern(gstinRegex).optional().messages({
-            'string.pattern.base': "Invalid Seller GSTIN format",  // Corrected message
-            'string.length': "Seller GSTIN length must be 15 characters long",
-        }),
+
         sellerName: Joi.string().trim().required().messages({
             'any.required': 'Seller name is required'
         }),
@@ -100,17 +97,29 @@ const sellerBillvalidation = (data) => {
             .messages({
                 'string.base': 'Invalid Cess value. Must be a string',
             }),
-        // sellerType: Joi.string()
-        //     .trim()
-        //     .optional().valid("cashSale", "gstSale")
-        //     .messages({
-        //         'any.only': 'Invalid seller type. Must be either cashSale or gstSale',
-        //         'string.base': 'Invalid Cess value. Must be a string',
-        //     })
+        sellerType: Joi.string()
+            .trim()
+            .optional()
+            .valid("cashSale", "gstSale")
+            .messages({
+                'any.only': 'Invalid seller type. Must be either cashSale or gstSale',
+                'string.base': 'Invalid Cess value. Must be a string',
+            }),
+        sellerGSTIN: Joi.when('sellerType', {
+            is: 'gstSale',
+            then: Joi.string().trim().length(15).pattern(gstinRegex).required().messages({ // Make sellerGSTIN required if sellerType is "gstSale"
+                'string.pattern.base': "Invalid Seller GSTIN format",
+                'string.length': "Seller GSTIN length must be 15 characters long",
+                'any.required': "Seller GSTIN is required when sellerType is 'gstSale'",
+            }),
+            otherwise: Joi.string().trim().length(15).pattern(gstinRegex).optional().messages({ // Allow sellerGSTIN to be optional for other sellerTypes
+                'string.pattern.base': "Invalid Seller GSTIN format",
+                'string.length': "Seller GSTIN length must be 15 characters long",
+            }),
+        }),
     });
     return billSchema.validate(data);
 };
-
 const purchaserBillvalidation = (data) => {
     const billSchema = Joi.object({
         billType: Joi.string().valid('seller', 'purchaser').required().messages({

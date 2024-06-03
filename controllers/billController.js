@@ -14,6 +14,13 @@ const createUserBill = async (req, res) => {
         if (!isValidRequestBody(req.body)) {
             return res.status(400).send({ status: false, message: "Invalid request parameters", data: null });
         }
+        if (billType == 'seller') {
+            if (!req.query.sellerType) {
+                return res.status(400).send({ status: false, message: "Seller type required in query parameter  " });
+            }
+            req.body.sellerType = req.query.sellerType;
+
+        }
         req.body.userGSTIN = userGSTIN;
         const billValidationResult = await billValidationSchema(req.body);
         if (billValidationResult.error) {
@@ -37,21 +44,23 @@ const createUserBill = async (req, res) => {
         const getStateOfUser = userGSTIN.slice(0, 2);
         let checkduplicateData;
         if (billType == "seller") {
-            checkduplicateData = await checkInvoiceExistence(sellerBillModel, userGSTIN, invoiceDate, invoiceNo, sellerGSTIN, 'sellerGSTIN');
-
-            if (checkduplicateData && !checkduplicateData.status) {
-                return res.status(checkduplicateData.code).send({
-                    status: false,
-                    msg: checkduplicateData.msg,
-                    data: checkduplicateData.data
-                });
-            }
-            const getStateOfSeller = sellerGSTIN.slice(0, 2);
-            if (getStateOfSeller === getStateOfUser) {
-                SGST = CGST = gstRate / 2;
+            if (req.query.sellerType == 'gstSale') {
+                checkduplicateData = await checkInvoiceExistence(sellerBillModel, userGSTIN, invoiceDate, invoiceNo, sellerGSTIN, 'sellerGSTIN');
+                if (checkduplicateData && !checkduplicateData.status) {
+                    return res.status(checkduplicateData.code).send({
+                        status: false,
+                        msg: checkduplicateData.msg,
+                        data: checkduplicateData.data
+                    });
+                }
+                const getStateOfSeller = sellerGSTIN.slice(0, 2);
+                CGST = SGST = getStateOfSeller === getStateOfUser ? gstRate / 2 : 0;
+                IGST = getStateOfSeller !== getStateOfUser ? gstRate : 0;
             } else {
-                IGST = gstRate;
+                CGST = SGST = gstRate / 2
             }
+
+
             const sellerBillData = {
                 userGSTIN,
                 invoiceNo,
@@ -64,7 +73,8 @@ const createUserBill = async (req, res) => {
                 SGST,
                 CGST,
                 IGST,
-                Cess
+                Cess,
+                sellerType: req.query.sellerType
             };
             const userBill = new sellerBillModel(sellerBillData);
             await userBill.save();
