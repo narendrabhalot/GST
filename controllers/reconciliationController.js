@@ -101,8 +101,6 @@ const createReconciliation = async (req, res) => {
         res.status(500).json({ error: 'Internal Server Error' });
     }
 };
-
-
 const getReconciliationByGSTIN = async (req, res) => {
     try {
         const gstin = req.params.gstin
@@ -112,28 +110,25 @@ const getReconciliationByGSTIN = async (req, res) => {
             const financialMonth = 2;
             console.log(currentDate.month())
             if (financialMonth <= currentDate.month()) {
-                return moment.tz(`${moment().year()}-03-01`, "YYYY-MM-DD", "Asia/Kolkata").add(5, 'hours').add(30, 'minutes').toDate().toString();
+                return moment.tz(`${moment().year()}-04-01`, "YYYY-MM-DD", "Asia/Kolkata").add(5, 'hours').add(30, 'minutes').toDate().toString();
             } else {
                 return moment.tz(`${moment().year() - 1}-03-01`, "YYYY-MM-DD", "Asia/Kolkata").add(5, 'hours').add(30, 'minutes').toDate().toString();
             }
         }
         let startDate = getFinancialYearStartDate();
-        console.log(startDate)
 
-        console.log(startDate)
         startDate = moment.tz(startDate, IST_TIMEZONE).add(5, 'hours').add(30, 'minutes').toDate().toString()
-        console.log(startDate)
         const endDate = moment.tz(IST_TIMEZONE).add(5, 'hours').add(30, 'minutes').toDate().toString()
-        const reconciliationRecords = await reconcilitionModel.find({ userGSTIN: gstin });
-        // const filteredReconciliationRecords = reconciliationRecords.filter(item => {
-        //     try {
-        //         const itemDate = moment(item.b2bInvoiceDate, 'DD/MM/YYYY');
-        //         return itemDate.isValid() && itemDate.isAfter(startDate);
-        //     } catch (error) {
-        //         console.error(`Error parsing invoice date for item: ${item.b2bInvoiceDate}`, error);
-        //         return false;
-        //     }
-        // });
+        console.log(startDate, endDate)
+
+        const reconciliationRecords = await reconcilitionModel.find({
+            userGSTIN: gstin,
+            $or: [
+                { b2bInvoiceDate: { $gte: startDate, $lte: endDate } },
+                { invoiceDate: { $gte: startDate, $lte: endDate } }
+            ]
+        });
+
         if (!reconciliationRecords.length) {
             return res.status(404).json({ status: false, message: "No reconciliation record found" });
         }
