@@ -158,7 +158,9 @@ const purchaserBillvalidation = (data) => {
             'any.required': "User GSTIN number is required",
             'string.length': "User GSTIN length must be 15 characters long",
         }),
-        invoiceNo: Joi.string().trim().optional(),
+        invoiceNo: Joi.string().trim().required().messages({
+            'any.required': "Invoice or bill number is required",
+        }),
         invoiceDate: dateValidation.required().messages({
             'any.required': "Invoice date is required",
             'string.custom': "Invoice date must be in DD/MM/YYYY format and valid",

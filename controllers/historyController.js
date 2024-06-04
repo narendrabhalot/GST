@@ -11,7 +11,6 @@ const { aggregate } = require('../models/planModel')
 const getDatesByPlanType = (userPlan, month) => {
     const IST_TIMEZONE = 'Asia/Kolkata';
     let startDate, endDate;
-
     if (userPlan === "Monthly") {
         startDate = moment.tz(IST_TIMEZONE).month(month).startOf('month').add(5, 'hours').add(30, 'minutes');
         endDate = moment.tz(IST_TIMEZONE).month(month).endOf('month');
@@ -373,23 +372,23 @@ const getFilingHistory = async (req, res) => {
             ]);
             console.log(filingDataOfUser)
 
-            // if (filingDataOfUser.length <= 0) {
-            //     return "No data available"
-            // }
-            // Prepare and return the response object
-            // let quarterName = `${moment(sd).format('MMMM')}-${moment(ed).format('MMMM')}`
-            // const obj = {
-            //     _id: filingDataOfUser[0]._id,
-            //     month: quarterName,
-            //     netSale: filingDataOfUser[0].netSale,
-            //     sumToBePaidToGovtITCUsed: filingDataOfUser[0].sumToBePaidToGovtITCUsed,
-            //     itcRemainning: filingDataOfUser[0].itcRemainning,
-            // };
-            // if (filingDataOfUser[0].itcRemainning < 0) {
-            //     obj['itcRemainning'] = 0
-            //     obj.paidViaChalan = filingDataOfUser[0].itcRemaining
-            // }
-            return filingDataOfUser;
+            let quarterName = `${moment(sd).format('MMMM')}-${moment(ed).format('MMMM')}`
+            if (filingDataOfUser.length <= 0) {
+                return `${quarterName}: No filling history available`;
+            }
+
+            const obj = {
+                _id: filingDataOfUser[0]._id,
+                month: quarterName,
+                netSale: filingDataOfUser[0].netSale,
+                sumToBePaidToGovtITCUsed: filingDataOfUser[0].sumToBePaidToGovtITCUsed,
+                itcRemainning: filingDataOfUser[0].itcRemainning,
+            };
+            if (filingDataOfUser[0].itcRemainning < 0) {
+                obj['itcRemainning'] = 0
+                obj.paidViaChalan = filingDataOfUser[0].itcRemaining
+            }
+            return obj;
         };
         // Retrieve user details from the database
         let getUserDetail = await userModel.findOne({ gstin: userGSTIN });
@@ -404,11 +403,30 @@ const getFilingHistory = async (req, res) => {
         const filingData = [];
         itcRemaining = filingData.length > 0 ? filingData.pop().itcRemaining : 0;
         if (filingPeriod == 'Monthly') {
-            consol
-            for (let i = 0; i <= new Date().getMonth(); i++) {
-                let { startDate, endDate } = await getDatesByPlanType(filingPeriod, startedMonth + i);
-                let result = await getFilingDataForMonth(startDate, endDate, Number(itcRemaining), userGSTIN, startedMonth + i)
-                filingData.push(result)
+            function getFinancialYearDates(currentDate) {
+                const currentYear = currentDate.getFullYear();
+                const currentMonth = currentDate.getMonth(); // 0 (January) to 11 (December)
+
+                // Check if current month is before April (financial year starts previous year)
+                const financialYearStart = new Date(currentMonth < 3 ? currentYear - 1 : currentYear, 3, 1); // April 1st
+                const financialYearEnd = new Date(currentYear, currentMonth, currentDate.getDate()); // Current date
+
+                return { financialYearStart, financialYearEnd };
+            }
+            const currentDate = new Date();
+            console.log(currentDate)
+            const { financialYearStart, financialYearEnd } = getFinancialYearDates(currentDate);
+
+            for (let loopDate = new Date(financialYearStart); loopDate <= financialYearEnd; loopDate.setMonth(loopDate.getMonth() + 1)) {
+                const loopYear = loopDate.getFullYear();
+                const loopMonth = loopDate.getMonth(); // Adjust for 0-based month index
+                // let startDate = moment.tz(IST_TIMEZONE).month(loopMonth).year(loopYear).startOf('month').add(5, 'hours').add(30, 'minutes').toDate().toString();
+                // let endDate = moment.tz(IST_TIMEZONE).month(loopMonth).year(loopYear).endOf('month').toDate()
+                let { startDate, endDate } = getDatesByPlanType('Monthly', loopMonth)
+                // Do something with loopYear and loopMonth (e.g., process monthly data)
+                console.log(`Processing year ${loopYear}, month ${loopMonth}`, startDate, endDate);
+                let datas = await getFilingDataForMonth(startDate, endDate, itcRemaining, userGSTIN, startedMonth)
+                filingData.push(datas)
             }
         } else {
             async function getPreviousQuarters(inputDate) {
@@ -489,16 +507,16 @@ const getFilingHistory = async (req, res) => {
                 let { startDate, endDate } = item
                 console.log(createdAt, endDate)
                 console.log("nare")
+                let currentDate = moment().format()
+                console.log("current date ids ", currentDate)
+                if (moment(currentDate).isBefore(startDate)) {
+                    break;
+                }
                 let datas = await getFilingDataForMonth(startDate, endDate, itcRemaining, userGSTIN, startedMonth)
                 filingData.push(datas)
             }
         }
-
         // Array to store the filing data for all months
-
-
-
-
         return res.status(500).send({ status: false, data: filingData });
 
     } catch (error) {
