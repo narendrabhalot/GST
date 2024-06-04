@@ -133,32 +133,40 @@ const updateBillHistory = async (req, res) => {
     }
 
     const formattedDate = moment(invoiceDate, "DD/MM/YYYY").format("YYYY-MM-DD");
-    let seller = billType === 'seller' ? await sellerBillModel.findById(billId) : null
+    let getBill = billType === 'seller' ? await sellerBillModel.findById(billId) : await purchaserBillModel.findById(billId)
+    if (!getBill) {
+        return res.status(404).send({ status: false, msg: "No bill available with this id  " });
+    }
+    console.log(getBill)
     // 4. Combine validation with database check for efficiency
-    if (billType === 'seller' && seller.sellerType == 'cashCale') {
+    if (billType == 'seller' && seller.sellerType == 'cashSale') {
 
-    }
-    const query = {
-        invoiceNo: invoiceNo.trim(),
-        invoiceDate: formattedDate,
-        ...(billType === 'seller' ? { sellerGSTIN: sellerGSTIN.trim() } : { purchaserGSTIN: purchaserGSTIN.trim() }),
-    };
-
-    try {
-        const existingBill = await billModel.find(query);
-        if (existingBill.length > 0 && !existingBill.some(item => item._id.equals(billId))) {
-            return res.status(400).send({ status: false, msg: "Combination of userBillGSTIN, invoiceDate, and invoiceNo already exists." });
+    } else {
+        const query = {
+            invoiceNo: invoiceNo.trim(),
+            invoiceDate: formattedDate,
+            ...(billType === 'seller' ? { sellerGSTIN: sellerGSTIN.trim() } : { purchaserGSTIN: purchaserGSTIN.trim() }),
+        };
+        try {
+            const existingBill = await billModel.find(query);
+            if (existingBill.length > 0 && !existingBill.some(item => item._id.equals(billId))) {
+                return res.status(400).send({ status: false, msg: "Combination of userBillGSTIN, invoiceDate, and invoiceNo already exists." });
+            }
+        } catch (error) {
+            console.error('Error checking for existing bill:', error);
+            return res.status(500).send({ status: false, msg: "Internal server error" });
         }
-    } catch (error) {
-        console.error('Error checking for existing bill:', error);
-        return res.status(500).send({ status: false, msg: "Internal server error" });
+        const getStateOfUser = userGSTIN.slice(0, 2);
+        const getStateOfCounterparty = billType === 'seller' ? sellerGSTIN.slice(0, 2) : purchaserGSTIN.slice(0, 2);
+        SGST = CGST = getStateOfUser === getStateOfCounterparty ? gstRate / 2 : 0;
+        IGST = getStateOfUser !== getStateOfCounterparty ? gstRate : 0;
     }
+
+
+
 
     // 5. Calculate SGST, CGST, and IGST using a ternary operator for conciseness
-    const getStateOfUser = userGSTIN.slice(0, 2);
-    const getStateOfCounterparty = billType === 'seller' ? sellerGSTIN.slice(0, 2) : purchaserGSTIN.slice(0, 2);
-    SGST = CGST = getStateOfUser === getStateOfCounterparty ? gstRate / 2 : 0;
-    IGST = getStateOfUser !== getStateOfCounterparty ? gstRate : 0;
+
 
     // 6. Update bill data and handle errors using findByIdAndUpdate with options
     req.body.invoiceDate = formattedDate;
