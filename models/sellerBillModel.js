@@ -17,10 +17,10 @@ const sellerBillSchema = new mongoose.Schema({
         trim: true,
     },
     sellerGSTIN: {
-        type: String,
+        type: String, // Change from String (with uppercase)
         trim: true,
         uppercase: true,
-        set: (sellerGSTIN) => sellerGSTIN.toUpperCase()
+        set: (sellerGSTIN) => sellerGSTIN?.toUpperCase(), 
     },
     sellerName: {
         type: String,

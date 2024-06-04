@@ -61,6 +61,7 @@ const otpValidation = (data) => {
     return otpSchema.validate(data)
 }
 const sellerBillvalidation = (data) => {
+    console.log("data is ", data)
     const billSchema = Joi.object({
         billType: Joi.string().valid('seller', 'purchaser').required().messages({
             'any.only': 'Invalid bill type. Must be either "seller" or "purchaser"',
@@ -83,10 +84,7 @@ const sellerBillvalidation = (data) => {
         totalAmount: Joi.string().trim().required().messages({
             'any.required': "Total amount is required",
         }),
-        gstRate: Joi.number().valid(0, 5, 12, 18, 28).optional().messages({
-            'number.base': 'Invalid GST rate. Must be a number',
-            'any.only': 'Invalid GST rate. Must be 0, 5, 12, 18, 28',
-        }),
+
         grandTotal: Joi.string().trim().required().messages({
             'any.required': "Grand Total is required",
         }),
@@ -107,16 +105,45 @@ const sellerBillvalidation = (data) => {
             }),
         sellerGSTIN: Joi.when('sellerType', {
             is: 'gstSale',
-            then: Joi.string().trim().length(15).pattern(gstinRegex).required().messages({ // Make sellerGSTIN required if sellerType is "gstSale"
-                'string.pattern.base': "Invalid Seller GSTIN format",
-                'string.length': "Seller GSTIN length must be 15 characters long",
-                'any.required': "Seller GSTIN is required when sellerType is 'gstSale'",
-            }),
-            otherwise: Joi.string().trim().length(15).pattern(gstinRegex).optional().messages({ // Allow sellerGSTIN to be optional for other sellerTypes
-                'string.pattern.base': "Invalid Seller GSTIN format",
-                'string.length': "Seller GSTIN length must be 15 characters long",
-            }),
+            then: Joi.string()
+                .trim()
+                .length(15)
+                .pattern(gstinRegex)
+                .required()
+                .messages({
+                    'string.pattern.base': "Invalid Seller GSTIN format",
+                    'string.length': "Seller GSTIN length must be 15 characters long",
+                    'any.required': "Seller GSTIN is required when sellerType is 'gstSale'",
+                }),
+            otherwise: Joi.string()
+                .trim()
+                .length(15)
+                .pattern(gstinRegex)
+                .optional()
+                .allow('')
+                .messages({
+                    'string.pattern.base': "Invalid Seller GSTIN format",
+                    'string.length': "Seller GSTIN length must be 15 characters long",
+                }),
         }),
+        gstRate: Joi.when('sellerType', {
+            is: 'gstSale',
+            then: Joi.number()
+                .valid(0, 5, 12, 18, 28)
+                .optional()
+                .messages({
+                    'number.base': 'Invalid GST rate. Must be a number',
+                    'any.only': 'Invalid GST rate. Must be 0, 5, 12, 18, 28',
+                }),
+            otherwise: Joi.number()
+                .valid(0, 5, 12, 18, 28)
+                .required()
+                .messages({
+                    'any.required': "gstRate is required",
+                    'number.base': 'Invalid GST rate. Must be a number',
+                    'any.only': 'Invalid GST rate. Must be 0, 5, 12, 18, 28',
+                }),
+        })
     });
     return billSchema.validate(data);
 };

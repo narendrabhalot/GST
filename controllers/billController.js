@@ -58,6 +58,7 @@ const createUserBill = async (req, res) => {
                 IGST = getStateOfSeller !== getStateOfUser ? gstRate : 0;
             } else {
                 CGST = SGST = gstRate / 2
+
             }
 
 
@@ -65,7 +66,7 @@ const createUserBill = async (req, res) => {
                 userGSTIN,
                 invoiceNo,
                 invoiceDate: formattedDate,
-                sellerGSTIN,
+                sellerGSTIN: null,
                 sellerName,
                 totalAmount,
                 gstRate,

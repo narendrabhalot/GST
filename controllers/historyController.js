@@ -133,8 +133,11 @@ const updateBillHistory = async (req, res) => {
     }
 
     const formattedDate = moment(invoiceDate, "DD/MM/YYYY").format("YYYY-MM-DD");
-
+    let seller = billType === 'seller' ? await sellerBillModel.findById(billId) : null
     // 4. Combine validation with database check for efficiency
+    if (billType === 'seller' && seller.sellerType == 'cashCale') {
+
+    }
     const query = {
         invoiceNo: invoiceNo.trim(),
         invoiceDate: formattedDate,
