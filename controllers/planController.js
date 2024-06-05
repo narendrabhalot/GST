@@ -282,7 +282,7 @@ const getPlanWithSubPlan = async (req, res) => {
         if (!aggregationResult || aggregationResult.length === 0) {
             return res.status(404).json({ status: false, msg: 'No plans found' });
         }
-        return res.status(200).send({ status: true, data: aggregationResult })
+        return res.status(200).send(aggregationResult)
     } catch (error) {
         console.error('Error retrieving plans:', error);
         res.status(500).json({ status: false, msg: 'Internal server error', error: error.message });
