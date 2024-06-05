@@ -181,65 +181,7 @@ const updateBillHistory = async (req, res) => {
     }
 };
 
-// const updateBillHistory = async (req, res) => {
-//     const { billId, billType } = req.params;
-//     // Validate required fields and return appropriate error response
-//     if (!billId || !billType || Object.keys(req.body).length <= 0) {
-//         return res.status(400).send({ status: false, msg: "Missing required fields: billId or  billType or  and updated data in request body" });
-//     }
-//     let { userGSTIN, invoiceNo, invoiceDate, sellerGSTIN, b2bPurchaserName, purchaserGSTIN, sellerName, totalAmount, gstRate, grandTotal, totalTaxPaid, Cess, ...rest } = req.body
-//     if (Object.keys(rest).length > 0) {
-//         return res.status(400).send({ status: false, message: `Unexpected properties found in request body like ${Object.keys(rest)} ` })
-//     }
-//     const requiredGSTRates = new Set([5, 12, 18, 28]);
-//     if (!requiredGSTRates.has(gstRate)) {
-//         console.log("gst rate invalid")
-//         return res.status(400).send({ status: false, msg: "Incorrect GST rate " });
-//     }
-//     const billModel = billType === 'seller' ? sellerBillModel : purchaserBillModel;
-//     const validGrandAmount = Number(totalAmount) + (totalAmount * (gstRate / 100));
-//     if (validGrandAmount !== Number(grandTotal)) {
-//         return res.status(400).send({ status: false, msg: "Incorrect grand amount" });
-//     }
-//     const formattedDate = moment(invoiceDate, "DD/MM/YYYY").format("YYYY-MM-DD");
-//     const query = {
-//         invoiceNo: invoiceNo.trim(),
-//         invoiceDate: formattedDate,
-//         sellerGSTIN: sellerGSTIN.trim()
-//     };
 
-//     let checkDataExist = await billModel.find(query);
-//     if (checkDataExist) {
-//         let result = await checkDataExist.every(item => item._id.equals(billId));
-//         if (!result) {
-//             return res.send({ status: false, msg: "Combination of userBillGSTIN, invoiceDate, and invoiceNo already exists." })
-//         }
-//     }
-//     console.log(checkDataExist)
-
-//     let SGST, CGST, IGST;
-//     const getStateOfUser = userGSTIN.slice(0, 2);
-
-
-//     const getStateOfSeller = sellerGSTIN.slice(0, 2);
-//     if (getStateOfSeller === getStateOfUser) {
-//         SGST = CGST = gstRate / 2;
-//     } else {
-//         IGST = gstRate;
-//     }
-//     req.body.invoiceDate = formattedDate
-//     try {
-//         // Combine findByIdAndUpdate with error handling for a cleaner approach
-//         const updatedBill = await billModel.findByIdAndUpdate(billId, { $set: req.body }, { new: true, upsert: true });
-//         if (!updatedBill) {
-//             return res.status(404).send({ status: false, msg: `Bill of type '${billType}' with ID '${billId}' not found` });
-//         }
-//         return res.status(200).send({ status: true, msg: "Data updated successfully" });
-//     } catch (error) {
-//         console.error('Error updating bill:', error); // Log the error for debugging
-//         return res.status(500).send({ status: false, msg: "Internal server error" });
-//     }
-// };
 const getFilingHistory = async (req, res) => {
     try {
         const IST_TIMEZONE = 'Asia/Kolkata';
@@ -372,21 +314,21 @@ const getFilingHistory = async (req, res) => {
             ]);
             console.log(filingDataOfUser)
 
-            let quarterName = `${moment(sd).format('MMMM')}-${moment(ed).format('MMMM')}`
-            if (filingDataOfUser.length <= 0) {
-                return `${quarterName}: No filling history available`;
-            }
+            let quarterName = `${moment(sd).format('DD')}${moment(sd).format('MMMM')}-${moment(ed).format('DD')}${moment(ed).format('MMMM')}`
+            // if (filingDataOfUser.length <= 0) {
+            //     return `${quarterName}: No filling history available`;
+            // }
 
             const obj = {
-                _id: filingDataOfUser[0]._id,
-                month: quarterName,
-                netSale: filingDataOfUser[0].netSale,
-                sumToBePaidToGovtITCUsed: filingDataOfUser[0].sumToBePaidToGovtITCUsed,
-                itcRemainning: filingDataOfUser[0].itcRemainning,
+                _id: filingDataOfUser?.[0]?._id || 0,
+                monthrange: quarterName,
+                netSale: filingDataOfUser?.[0]?.netSale || 0,
+                sumToBePaidToGovtITCUsed: filingDataOfUser?.[0]?.sumToBePaidToGovtITCUsed || 0,
+                itcRemainning: filingDataOfUser?.[0]?.itcRemainning || 0,
             };
-            if (filingDataOfUser[0].itcRemainning < 0) {
+            if (filingDataOfUser[0].itcRemainning && filingDataOfUser[0].itcRemainning < 0) {
                 obj['itcRemainning'] = 0
-                obj.paidViaChalan = filingDataOfUser[0].itcRemaining
+                obj.paidViaChalan = filingDataOfUser[0].itcRemainning
             }
             return obj;
         };
@@ -416,11 +358,11 @@ const getFilingHistory = async (req, res) => {
             const currentDate = new Date();
             console.log(currentDate)
             const { financialYearStart, financialYearEnd } = getFinancialYearDates(currentDate);
-
-            for (let loopDate = new Date(financialYearStart); loopDate <= financialYearEnd; loopDate.setMonth(loopDate.getMonth() + 1)) {
+            let startLoopdate = new Date(financialYearStart) < createdAt ? createdAt : new Date(financialYearStart)
+            console.log("startLoopdate is ", startLoopdate)
+            for (let loopDate = startLoopdate; loopDate <= financialYearEnd; loopDate.setMonth(loopDate.getMonth() + 1)) {
                 const loopYear = loopDate.getFullYear();
                 const loopMonth = loopDate.getMonth(); // Adjust for 0-based month index
-              
                 let { startDate, endDate } = getDatesByPlanType('Monthly', loopMonth)
                 // Do something with loopYear and loopMonth (e.g., process monthly data)
                 console.log(`Processing year ${loopYear}, month ${loopMonth}`, startDate, endDate);
@@ -516,8 +458,7 @@ const getFilingHistory = async (req, res) => {
             }
         }
         // Array to store the filing data for all months
-        return res.status(500).send({ status: false, data: filingData });
-
+        return res.status(200).send({ status: true, data: filingData });
     } catch (error) {
         // Handle any unexpected errors
         console.error("Error fetching filing history:", error);
