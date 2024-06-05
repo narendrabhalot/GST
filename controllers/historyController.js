@@ -420,8 +420,7 @@ const getFilingHistory = async (req, res) => {
             for (let loopDate = new Date(financialYearStart); loopDate <= financialYearEnd; loopDate.setMonth(loopDate.getMonth() + 1)) {
                 const loopYear = loopDate.getFullYear();
                 const loopMonth = loopDate.getMonth(); // Adjust for 0-based month index
-                // let startDate = moment.tz(IST_TIMEZONE).month(loopMonth).year(loopYear).startOf('month').add(5, 'hours').add(30, 'minutes').toDate().toString();
-                // let endDate = moment.tz(IST_TIMEZONE).month(loopMonth).year(loopYear).endOf('month').toDate()
+              
                 let { startDate, endDate } = getDatesByPlanType('Monthly', loopMonth)
                 // Do something with loopYear and loopMonth (e.g., process monthly data)
                 console.log(`Processing year ${loopYear}, month ${loopMonth}`, startDate, endDate);
