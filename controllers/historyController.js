@@ -326,7 +326,7 @@ const getFilingHistory = async (req, res) => {
                 sumToBePaidToGovtITCUsed: filingDataOfUser?.[0]?.sumToBePaidToGovtITCUsed || 0,
                 itcRemainning: filingDataOfUser?.[0]?.itcRemainning || 0,
             };
-            if (filingDataOfUser[0].itcRemainning && filingDataOfUser[0].itcRemainning < 0) {
+            if (filingDataOfUser[0]?.itcRemainning && filingDataOfUser[0].itcRemainning < 0) {
                 obj['itcRemainning'] = 0
                 obj.paidViaChalan = filingDataOfUser[0].itcRemainning
             }
@@ -338,17 +338,16 @@ const getFilingHistory = async (req, res) => {
             return res.status(404).send({ status: false, message: "User not found" });
         }
         let { itcRemaining, createdAt, filingPeriod } = getUserDetail
-        let dateObj = new Date(createdAt).getMonth();
+
         // Determine user's plan type and calculate the start date
         let startedMonth = new Date().getMonth() !== new Date(createdAt).getMonth() ? new Date(createdAt).getMonth() : new Date().getMonth()
-        console.log(startedMonth)
+        // console.log(startedMonth)
         const filingData = [];
         itcRemaining = filingData.length > 0 ? filingData.pop().itcRemaining : 0;
         if (filingPeriod == 'Monthly') {
             function getFinancialYearDates(currentDate) {
                 const currentYear = currentDate.getFullYear();
                 const currentMonth = currentDate.getMonth(); // 0 (January) to 11 (December)
-
                 // Check if current month is before April (financial year starts previous year)
                 const financialYearStart = new Date(currentMonth < 3 ? currentYear - 1 : currentYear, 3, 1); // April 1st
                 const financialYearEnd = new Date(currentYear, currentMonth, currentDate.getDate()); // Current date
@@ -382,9 +381,7 @@ const getFilingHistory = async (req, res) => {
 
                 const previousQuarters = [];
                 for (let i = 0; i < quarters.length; i++) {
-
                     const { name, startMonth, endMonth } = quarters[i];
-
                     // Create startDate and endDate objects with timezone and formatting
                     let startDate = moment.tz(IST_TIMEZONE).month(startMonth).startOf('month').add(5, 'hours').add(30, 'minutes').toDate().toString()
                     let endDate = moment.tz(IST_TIMEZONE).month(endMonth).endOf('month').toDate().toString()
@@ -403,7 +400,6 @@ const getFilingHistory = async (req, res) => {
                                     .startOf('month')
                                     .add(5, 'hours')
                                     .add(30, 'minutes').toDate(),
-
                                 endDate: moment.tz(IST_TIMEZONE)
                                     .month(endMonth).year(moment(date).year())
                                     .endOf('month').toDate(),
@@ -440,7 +436,7 @@ const getFilingHistory = async (req, res) => {
                 }
                 return previousQuarters;
             }
-            currentDate = new Date('2025-02-25');
+            currentDate = new Date();
             console.log("currentDate is ", currentDate)
             let datesforQuarterlyUser = await getPreviousQuarters(currentDate)
             console.log("datesforQuarterlyUser is  ", datesforQuarterlyUser)

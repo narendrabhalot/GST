@@ -187,14 +187,15 @@ const getPlan = async (req, res) => {
         const getPlan = await planModel.aggregate([
             { $unwind: "$subPlans" },
             { $sort: { "subPlans.subPlanPrice": 1 } },
-            {
-                $group: {
-                    _id: "$_id",
-                    subPlans: { $push: "$subPlans" },
-                    // Add other fields you want to preserve
-                }
-            },
-            { $project: { subPlans: 1 } } // Adjust projection as needed
+            // {
+            //     $group: {
+            //         _id: "$_id",
+            //         h
+            //         subPlans: { $push: "$subPlans" },
+            //         // Add other fields you want to preserve
+            //     }
+            // },
+            // { $project: { subPlans: 1 } } // Adjust projection as needed
         ]);
 
         if (getPlan.length > 0) {
@@ -255,11 +256,36 @@ const getPlanByGSTIN = async (req, res) => {
 }
 const getPlanWithSubPlan = async (req, res) => {
     try {
-        const plans = await planModel.find().populate('subPlans').exec();
-        res.json(plans);
+        const pipeline = [
+            {
+                $unwind: "$subPlans"
+            },
+            {
+                $sort: { "subPlans.subPlanPrice": 1 }
+            },
+            {
+                $group: {
+                    _id: "$_id",
+                    planName: { $first: "$planName" },
+                    subPlans: { $push: "$subPlans" }
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    planName: 1,
+                    subPlans: 1
+                }
+            }
+        ];
+        const aggregationResult = await planModel.aggregate(pipeline);
+        if (!aggregationResult || aggregationResult.length === 0) {
+            return res.status(404).json({ status: false, msg: 'No plans found' });
+        }
+        return res.status(200).send({ status: true, data: aggregationResult })
     } catch (error) {
         console.error('Error retrieving plans:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({ status: false, msg: 'Internal server error', error: error.message });
     }
 };
 const getMyPlan = async (req, res) => {
