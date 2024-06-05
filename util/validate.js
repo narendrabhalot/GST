@@ -72,7 +72,20 @@ const sellerBillvalidation = (data) => {
             'any.required': "User GSTIN number is required",
             'string.length': "User GSTIN length must be 15 characters long",
         }),
-        invoiceNo: Joi.string().trim().optional().allow(''),
+        // invoiceNo: Joi.string().trim().optional().allow(''),
+        invoiceNo: Joi.when('sellerType', {
+            is: 'gstSale',
+            then: Joi.string()
+                .trim()
+                .required()
+                .messages({
+                    'any.required': "Seller invoiceNo is required when sellerType is 'gstSale'",
+                }),
+            otherwise: Joi.string()
+                .trim()
+                .optional()
+                .allow('')
+        }),
         invoiceDate: dateValidation.required().messages({
             'any.required': "Invoice date is required",
             'string.custom': "Invoice date must be in DD/MM/YYYY format and valid",

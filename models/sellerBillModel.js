@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
-const moment = require('moment')
+const moment = require('moment');
+
 const sellerBillSchema = new mongoose.Schema({
     userGSTIN: {
         type: String,
@@ -8,19 +9,19 @@ const sellerBillSchema = new mongoose.Schema({
     },
     invoiceNo: {
         type: String,
-
         trim: true,
+        default: moment().utc()
     },
     invoiceDate: {
-        type: Date, // Corrected type to Date
+        type: Date,
         required: true,
         trim: true,
     },
     sellerGSTIN: {
-        type: String, // Change from String (with uppercase)
+        type: String,
         trim: true,
         uppercase: true,
-        set: (sellerGSTIN) => sellerGSTIN?.toUpperCase(), 
+        set: (sellerGSTIN) => sellerGSTIN?.toUpperCase(),
     },
     sellerName: {
         type: String,
@@ -28,17 +29,17 @@ const sellerBillSchema = new mongoose.Schema({
         trim: true,
     },
     totalAmount: {
-        type: String,
+        type: Number,
         required: true,
         trim: true,
     },
     gstRate: {
-        type: String,
+        type: Number,
         required: true,
         trim: true,
     },
     grandTotal: {
-        type: String,
+        type: Number,
         required: true,
         trim: true,
     },
@@ -46,23 +47,20 @@ const sellerBillSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
-    Cess: {
+    cess: {
         type: Number,
         default: 0
     },
     SGST: {
         type: Number,
-        trim: true,
         default: 0
     },
     CGST: {
         type: Number,
-        trim: true,
         default: 0,
     },
     IGST: {
         type: Number,
-        trim: true,
         default: 0,
     },
     sellerType: {
@@ -77,5 +75,5 @@ sellerBillSchema.virtual('formattedDate').get(function () {
     return moment(this.invoiceDate).format('DD/MM/YYYY');
 });
 
-const userBill = mongoose.model('sellerBill', sellerBillSchema);
-module.exports = userBill;
+const UserBill = mongoose.model('sellerBill', sellerBillSchema);
+module.exports = UserBill;

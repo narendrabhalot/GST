@@ -39,7 +39,6 @@ const createUserBill = async (req, res) => {
                 return res.status(400).send({ status: false, msg: "Incorrect grand amount" });
             }
         }
-
         let SGST, CGST, IGST;
         const getStateOfUser = userGSTIN.slice(0, 2);
         let checkduplicateData;
@@ -55,18 +54,13 @@ const createUserBill = async (req, res) => {
                 }
                 const getStateOfSeller = sellerGSTIN.slice(0, 2);
                 CGST = SGST = getStateOfSeller === getStateOfUser ? gstRate / 2 : 0;
-                IGST = getStateOfSeller !== getStateOfUser ? gstRate : 0;
-            } else {
-                CGST = SGST = gstRate / 2
-
+                IGST = getStateOfSeller !== getStateOfUser ? gstRate : 0
             }
-
-
             const sellerBillData = {
                 userGSTIN,
                 invoiceNo,
                 invoiceDate: formattedDate,
-                sellerGSTIN: null,
+                sellerGSTIN,
                 sellerName,
                 totalAmount,
                 gstRate,
@@ -80,6 +74,7 @@ const createUserBill = async (req, res) => {
             const userBill = new sellerBillModel(sellerBillData);
             await userBill.save();
             return res.status(201).send({ status: true, msg: "Bill uploded successfully", data: userBill });
+
         } else {
             checkduplicateData = await checkInvoiceExistence(purchaserBillModel, userGSTIN, invoiceDate, invoiceNo, purchaserGSTIN, 'purchaserGSTIN');
             if (checkduplicateData && !checkduplicateData.status) {

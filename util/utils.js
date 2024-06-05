@@ -1,6 +1,7 @@
 const moment = require('moment');
 
 async function checkInvoiceExistence(model, userGSTIN, invoiceDate, invoiceNo, gstin, gstinType) {
+    console.log(model, userGSTIN, invoiceDate, invoiceNo, gstin, gstinType)
     if (!gstin || !invoiceNo || !invoiceDate) {
         return {
             status: false,
