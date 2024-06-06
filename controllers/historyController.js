@@ -52,7 +52,7 @@ const getBillHistoryByUserType = async (req, res) => {
         console.log(formattedStartDate)
 
         const billModel = userType === 'seller' ? sellerBillModel : purchaserBillModel;
-        const billData = await billModel.find({ userGSTIN: gstin, invoiceDate: { $gte: formattedStartDate } });
+        const billData = await billModel.find({ userGSTIN: gstin, createdAt: { $gte: formattedStartDate } });
         if (billData.length > 0) {
             return res.status(200).send({ status: true, msg: `Retrieved ${userType} bills successfully`, data: billData });
         } else {
@@ -157,8 +157,8 @@ const updateBillHistory = async (req, res) => {
         }
         const getStateOfUser = userGSTIN.slice(0, 2);
         const getStateOfCounterparty = billType === 'seller' ? sellerGSTIN.slice(0, 2) : purchaserGSTIN.slice(0, 2);
-        SGST = CGST = getStateOfUser === getStateOfCounterparty ? gstRate / 2 : 0;
-        IGST = getStateOfUser !== getStateOfCounterparty ? gstRate : 0;
+        SGST = CGST = getStateOfUser === getStateOfCounterparty ? (Number(grandTotal) - Number(totalAmount))  / 2 : 0;
+        IGST = getStateOfUser !== getStateOfCounterparty ? (Number(grandTotal) - Number(totalAmount))  : 0;
     }
 
 

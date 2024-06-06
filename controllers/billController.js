@@ -4,7 +4,6 @@ const purchaserBillModel = require('../models/purchaserBillModel')
 const { checkInvoiceExistence } = require('../util/utils');
 const moment = require('moment')
 const { sellerBillvalidation, purchaserBillvalidation, isValidRequestBody } = require("../util/validate")
-
 const createUserBill = async (req, res) => {
     try {
         let { invoiceNo, invoiceDate, sellerGSTIN, purchaserGSTIN, sellerName, purchaserName, totalAmount, gstRate, grandTotal, billType, Cess } = req.body;
@@ -53,8 +52,10 @@ const createUserBill = async (req, res) => {
                     });
                 }
                 const getStateOfSeller = sellerGSTIN.slice(0, 2);
-                CGST = SGST = getStateOfSeller === getStateOfUser ? gstRate / 2 : 0;
-                IGST = getStateOfSeller !== getStateOfUser ? gstRate : 0
+                CGST = SGST = getStateOfSeller === getStateOfUser ? (Number(grandTotal) - Number(totalAmount)) / 2 : 0;
+                IGST = getStateOfSeller !== getStateOfUser ? Number(grandTotal) - Number(totalAmount) : 0
+            } else {
+                CGST = SGST = (Number(grandTotal) - Number(totalAmount)) / 2
             }
             const sellerBillData = {
                 userGSTIN,
@@ -85,13 +86,8 @@ const createUserBill = async (req, res) => {
                 });
             }
             const getStateOfPurchaser = purchaserGSTIN.slice(0, 2);
-            if (getStateOfPurchaser === getStateOfUser) {
-                SGST = gstRate / 2;
-                CGST = gstRate / 2;
-            } else {
-                IGST = gstRate;
-            }
-
+            CGST = SGST = getStateOfPurchaser === getStateOfUser ? (Number(grandTotal) - Number(totalAmount)) / 2 : 0;
+            IGST = getStateOfPurchaser !== getStateOfUser ? Number(grandTotal) - Number(totalAmount) : 0
             const purchaserBillData = {
                 userGSTIN,
                 invoiceNo,
@@ -106,7 +102,6 @@ const createUserBill = async (req, res) => {
                 IGST,
                 Cess
             };
-
             const purchaserBill = new purchaserBillModel(purchaserBillData);
             await purchaserBill.save();
             return res.status(201).send({ status: true, msg: " Bill uploded successfully", data: purchaserBill });
@@ -116,7 +111,7 @@ const createUserBill = async (req, res) => {
     }
 };
 
-module.exports = createUserBill;
+
 
 const getBillByDateRangeAndUserGSTIN = async (req, res) => {
     try {

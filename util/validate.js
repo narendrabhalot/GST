@@ -97,7 +97,6 @@ const sellerBillvalidation = (data) => {
         totalAmount: Joi.string().trim().required().messages({
             'any.required': "Total amount is required",
         }),
-
         grandTotal: Joi.string().trim().required().messages({
             'any.required': "Grand Total is required",
         }),
