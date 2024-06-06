@@ -137,13 +137,14 @@ const updateBillHistory = async (req, res) => {
         return res.status(404).send({ status: false, msg: "No bill available with this id  " });
     }
     console.log(getBill)
+    let SGST,CGST,IGST
     // 4. Combine validation with database check for efficiency
     if (billType == 'seller' && getBill?.sellerType == 'cashSale') {
-
-        const getStateOfUser = getBill.userGSTIN.slice(0, 2);
-        const getStateOfCounterparty = billType === 'seller' ? sellerGSTIN.slice(0, 2) : purchaserGSTIN.slice(0, 2);
-        SGST = CGST = getStateOfUser === getStateOfCounterparty ? (Number(grandTotal) - Number(totalAmount)) / 2 : 0;
-        IGST = getStateOfUser !== getStateOfCounterparty ? (Number(grandTotal) - Number(totalAmount)) : 0;
+        
+       
+      
+        SGST = CGST = (Number(grandTotal) - Number(totalAmount)) / 2
+   
     } else {
         const query = {
             invoiceNo: invoiceNo.trim(),
@@ -166,6 +167,10 @@ const updateBillHistory = async (req, res) => {
     }
 
     req.body.invoiceDate = formattedDate;
+    req.body.SGST = SGST
+    req.body.CGST = CGST;
+    req.body.IGST = IGST;
+
     try {
         const updatedBill = await billModel.findByIdAndUpdate(billId, req.body, { new: true });
         if (!updatedBill) {
