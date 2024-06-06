@@ -95,7 +95,7 @@ const updateBillHistory = async (req, res) => {
     // 1. Validate required fields with a single destructuring and early return for clarity
     const { billId, billType } = req.params;
     const {
-        userGSTIN,
+
         invoiceNo,
         invoiceDate,
         sellerGSTIN,
@@ -138,8 +138,12 @@ const updateBillHistory = async (req, res) => {
     }
     console.log(getBill)
     // 4. Combine validation with database check for efficiency
-    if (billType == 'seller' && seller.sellerType == 'cashSale') {
+    if (billType == 'seller' && getBill?.sellerType == 'cashSale') {
 
+        const getStateOfUser = getBill.userGSTIN.slice(0, 2);
+        const getStateOfCounterparty = billType === 'seller' ? sellerGSTIN.slice(0, 2) : purchaserGSTIN.slice(0, 2);
+        SGST = CGST = getStateOfUser === getStateOfCounterparty ? (Number(grandTotal) - Number(totalAmount)) / 2 : 0;
+        IGST = getStateOfUser !== getStateOfCounterparty ? (Number(grandTotal) - Number(totalAmount)) : 0;
     } else {
         const query = {
             invoiceNo: invoiceNo.trim(),
@@ -155,19 +159,12 @@ const updateBillHistory = async (req, res) => {
             console.error('Error checking for existing bill:', error);
             return res.status(500).send({ status: false, msg: "Internal server error" });
         }
-        const getStateOfUser = userGSTIN.slice(0, 2);
+        const getStateOfUser = getBill.userGSTIN.slice(0, 2);
         const getStateOfCounterparty = billType === 'seller' ? sellerGSTIN.slice(0, 2) : purchaserGSTIN.slice(0, 2);
-        SGST = CGST = getStateOfUser === getStateOfCounterparty ? (Number(grandTotal) - Number(totalAmount))  / 2 : 0;
-        IGST = getStateOfUser !== getStateOfCounterparty ? (Number(grandTotal) - Number(totalAmount))  : 0;
+        SGST = CGST = getStateOfUser === getStateOfCounterparty ? (Number(grandTotal) - Number(totalAmount)) / 2 : 0;
+        IGST = getStateOfUser !== getStateOfCounterparty ? (Number(grandTotal) - Number(totalAmount)) : 0;
     }
 
-
-
-
-    // 5. Calculate SGST, CGST, and IGST using a ternary operator for conciseness
-
-
-    // 6. Update bill data and handle errors using findByIdAndUpdate with options
     req.body.invoiceDate = formattedDate;
     try {
         const updatedBill = await billModel.findByIdAndUpdate(billId, req.body, { new: true });
