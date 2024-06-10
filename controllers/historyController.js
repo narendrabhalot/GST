@@ -137,14 +137,10 @@ const updateBillHistory = async (req, res) => {
         return res.status(404).send({ status: false, msg: "No bill available with this id  " });
     }
     console.log(getBill)
-    let SGST,CGST,IGST
+    let SGST, CGST, IGST
     // 4. Combine validation with database check for efficiency
     if (billType == 'seller' && getBill?.sellerType == 'cashSale') {
-        
-       
-      
         SGST = CGST = (Number(grandTotal) - Number(totalAmount)) / 2
-   
     } else {
         const query = {
             invoiceNo: invoiceNo.trim(),
@@ -188,7 +184,6 @@ const getFilingHistory = async (req, res) => {
     try {
         const IST_TIMEZONE = 'Asia/Kolkata';
         let currentDate = moment.tz().add(5, 'hours').add(30, 'minutes').toString()
-
         let { userGSTIN } = req.params;
         const getFilingDataForMonth = async (sd, ed, itcRemaining, userGSTIN, startedMonth) => {
             console.log(sd, ed, itcRemaining, userGSTIN)
@@ -334,28 +329,27 @@ const getFilingHistory = async (req, res) => {
             }
             return obj;
         };
+        function getFinancialYearDates(currentDate) {
+            const currentYear = currentDate.getFullYear();
+            const currentMonth = currentDate.getMonth(); // 0 (January) to 11 (December)
+            // Check if current month is before April (financial year starts previous year)
+            const financialYearStart = new Date(currentMonth < 3 ? currentYear - 1 : currentYear, 3, 1); // April 1st
+            const financialYearEnd = new Date(currentYear, currentMonth, currentDate.getDate()); // Current date
+            return { financialYearStart, financialYearEnd };
+        }
         // Retrieve user details from the database
         let getUserDetail = await userModel.findOne({ gstin: userGSTIN });
         if (!getUserDetail) {
             return res.status(404).send({ status: false, message: "User not found" });
         }
         let { itcRemaining, createdAt, filingPeriod } = getUserDetail
-
         // Determine user's plan type and calculate the start date
         let startedMonth = new Date().getMonth() !== new Date(createdAt).getMonth() ? new Date(createdAt).getMonth() : new Date().getMonth()
         // console.log(startedMonth)
         const filingData = [];
         itcRemaining = filingData.length > 0 ? filingData.pop().itcRemaining : 0;
         if (filingPeriod == 'Monthly') {
-            function getFinancialYearDates(currentDate) {
-                const currentYear = currentDate.getFullYear();
-                const currentMonth = currentDate.getMonth(); // 0 (January) to 11 (December)
-                // Check if current month is before April (financial year starts previous year)
-                const financialYearStart = new Date(currentMonth < 3 ? currentYear - 1 : currentYear, 3, 1); // April 1st
-                const financialYearEnd = new Date(currentYear, currentMonth, currentDate.getDate()); // Current date
 
-                return { financialYearStart, financialYearEnd };
-            }
             const currentDate = new Date();
             console.log(currentDate)
             const { financialYearStart, financialYearEnd } = getFinancialYearDates(currentDate);
@@ -371,88 +365,43 @@ const getFilingHistory = async (req, res) => {
                 filingData.push(datas)
             }
         } else {
-            async function getPreviousQuarters(inputDate) {
-                let date = inputDate.toString()
-                console.log("date is a ", date)
-                const quarters = [
-                    { name: "Q1", startMonth: 3, endMonth: 5 },
-                    { name: "Q2", startMonth: 6, endMonth: 8 },
-                    { name: "Q3", startMonth: 9, endMonth: 11 },
-                    { name: "Q4", startMonth: 0, endMonth: 2 }
-                ];
+            const currentDate = new Date();
+            console.log(currentDate);
+            const { financialYearStart, financialYearEnd } = getFinancialYearDates(currentDate);
+            // Calculate quarter start and end dates based on current month
+            const currentMonth = currentDate.getMonth(); // 0-based month index
 
-                const previousQuarters = [];
-                for (let i = 0; i < quarters.length; i++) {
-                    const { name, startMonth, endMonth } = quarters[i];
-                    // Create startDate and endDate objects with timezone and formatting
-                    let startDate = moment.tz(IST_TIMEZONE).month(startMonth).startOf('month').add(5, 'hours').add(30, 'minutes').toDate().toString()
-                    let endDate = moment.tz(IST_TIMEZONE).month(endMonth).endOf('month').toDate().toString()
-                    console.log(date)
-                    startDate = moment(startDate, "ddd MMM DD YYYY HH:mm:ss Z");
-                    endDate = moment(endDate, "ddd MMM DD YYYY HH:mm:ss Z");
-                    date = moment.utc(date);
-                    console.log(date, startDate, endDate)
+            // let startLoopdate= new Date(financialYearStart.getFullYear(), 3, 1)
+            let startLoopdate = new Date(financialYearStart) < createdAt ? createdAt : new Date(financialYearStart)
+            // let startLoopdate= new Date(financialYearStart.getFullYear(), 3, 1)
+            let month = startLoopdate.getMonth()
+            console.log(" months is ", month)
 
-                    if (moment(date).isAfter(endDate)) { // Modified for inclusivity
-                        console.log("nare")
-                        if (name == "Q4") {
-                            previousQuarters.push({
-                                startDate: moment.tz(IST_TIMEZONE)
-                                    .month(startMonth)
-                                    .startOf('month')
-                                    .add(5, 'hours')
-                                    .add(30, 'minutes').toDate(),
-                                endDate: moment.tz(IST_TIMEZONE)
-                                    .month(endMonth).year(moment(date).year())
-                                    .endOf('month').toDate(),
-                            });
-                        } else {
-                            previousQuarters.push({
-                                startDate: moment.tz(IST_TIMEZONE)
-                                    .month(startMonth)
-                                    .startOf('month')
-                                    .add(5, 'hours')
-                                    .add(30, 'minutes').toDate(),
-
-                                endDate: moment.tz(IST_TIMEZONE)
-                                    .month(endMonth)
-                                    .endOf('month').toDate(),
-                            });
-                        }
-
-                    } else {
-                        previousQuarters.push({
-                            startDate: moment.tz(IST_TIMEZONE)
-                                .month(startMonth)
-                                .startOf('month')
-                                .add(5, 'hours')
-                                .add(30, 'minutes').toDate(),
-
-                            endDate: moment.tz(IST_TIMEZONE)
-                                .month(endMonth).year(moment(date).year())
-                                .endOf('month').toDate(),
-
-                        });
-                        break
-                    }
-                }
-                return previousQuarters;
-            }
-            currentDate = new Date();
-            console.log("currentDate is ", currentDate)
-            let datesforQuarterlyUser = await getPreviousQuarters(currentDate)
-            console.log("datesforQuarterlyUser is  ", datesforQuarterlyUser)
-            for (let item of datesforQuarterlyUser) {
-                let { startDate, endDate } = item
-                console.log(createdAt, endDate)
-                console.log("nare")
-                let currentDate = moment().format()
-                console.log("current date ids ", currentDate)
-                if (moment(currentDate).isBefore(startDate)) {
+            const quarter = Math.floor(startLoopdate.getMonth() / 3); // Calculate current quarter (0-3)
+            switch (quarter) {
+                case 1: // Quarter 1 (April - June)
+                    startLoopdate = new Date(financialYearStart.getFullYear(), 3, 1); // April 1st
                     break;
-                }
-                let datas = await getFilingDataForMonth(startDate, endDate, itcRemaining, userGSTIN, startedMonth)
-                filingData.push(datas)
+                case 2: // Quarter 2 (July - September)
+                    startLoopdate = new Date(financialYearStart.getFullYear(), 6, 1); // July 1st
+                    break;
+                case 3: // Quarter 3 (October - December)
+                    startLoopdate = new Date(financialYearStart.getFullYear(), 9, 1); // October 1st
+                    break;
+                case 0: // Quarter 4 (January - March)
+                    // Handle potential year change for Quarter 4
+                    const nextYear = financialYearStart.getFullYear() + 1;
+                    startLoopdate = new Date(nextYear, 0, 1); // January 1st of next year
+                    break;
+            }
+
+            console.log("startLoopdate is ", startLoopdate);
+            for (let loopDate = startLoopdate; loopDate <= financialYearEnd; loopDate.setMonth(loopDate.getMonth() + 3)) {
+                const loopYear = loopDate.getFullYear();
+                const loopMonth = loopDate.getMonth(); // Adjust for 0-based month index
+                let { startDate, endDate } = getDatesByPlanType('Quarterly', loopMonth)
+                console.log(`Processing year ${loopYear}, quarter ${loopQuarter}`, startDate, endDate);
+
             }
         }
         // Array to store the filing data for all months
