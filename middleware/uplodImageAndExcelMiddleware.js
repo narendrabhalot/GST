@@ -37,7 +37,8 @@ const storage = multer.diskStorage({
         cb(null, uploadPath);
     },
     filename: function (req, file, cb) {
-        cb(null, file.originalname); // Use the original file name
+        const uniquePrefix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, uniquePrefix + '-' + file.originalname);
     }
 });
 const fileFilter = (req, file, cb) => {

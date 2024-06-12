@@ -87,12 +87,10 @@ const getUser = async (req, res) => {
             return res.status(404).json({ message: 'User not found' });
         }
         return res.status(200).send({ status: true, msg: "User get successfully", data: user })
-
     } catch (error) {
         console.error('Error finding user:', error);
         return res.status(500).json({ message: 'Internal Server Error' });
     }
-
 }
 const updateUser = async (req, res) => {
     try {

@@ -99,13 +99,12 @@ const uploadB2BExcelFile = async (req, res) => {
         )) {
             existingInvoiceMap.set(`${invoice.purchaserGSTIN}-${invoice.invoiceNo}-${invoice.invoiceDate}`, invoice)
         }
-        console
-            .log("existingInvoiceMap is ", existingInvoiceMap)
+        console.log("existingInvoiceMap is ", existingInvoiceMap)
         const results = []
         for (let item of mappingDatails) {
             let { invoiceNo, invoiceDate, purchaserGSTIN, purchaserName, totalAmount, gstRate, grandTotal, billType, SGST, CGST, IGST, Cess } = item;
             let sendDatais = { invoiceNo, invoiceDate, purchaserGSTIN, purchaserName, totalAmount, gstRate, grandTotal, billType, Cess, userGSTIN: getUserGSTIN, billType: 'purchaser' }
-            // const billValidationResult = await purchaserBillvalidation(sendDatais);
+            const billValidationResult = await purchaserBillvalidation(sendDatais);
             // if (billValidationResult.error) {
             //     results.push({ errorMessage: billValidationResult.error.details[0].message, errorRow: item })
             //     continue;

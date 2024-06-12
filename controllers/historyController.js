@@ -50,7 +50,6 @@ const getBillHistoryByUserType = async (req, res) => {
 
         const formattedStartDate = moment(startDate, "DD/MM/YYYY").toDate(); // Convert to Date object
         console.log(formattedStartDate)
-
         const billModel = userType === 'seller' ? sellerBillModel : purchaserBillModel;
         const billData = await billModel.find({ userGSTIN: gstin, createdAt: { $gte: formattedStartDate } });
         if (billData.length > 0) {
@@ -400,7 +399,8 @@ const getFilingHistory = async (req, res) => {
                 const loopYear = loopDate.getFullYear();
                 const loopMonth = loopDate.getMonth(); // Adjust for 0-based month index
                 let { startDate, endDate } = getDatesByPlanType('Quarterly', loopMonth)
-                console.log(`Processing year ${loopYear}, quarter ${loopQuarter}`, startDate, endDate);
+                let datas = await getFilingDataForMonth(startDate, endDate, itcRemaining, userGSTIN, startedMonth)
+                filingData.push(datas)
 
             }
         }
