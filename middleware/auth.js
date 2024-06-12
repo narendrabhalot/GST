@@ -6,19 +6,26 @@ const userModel = require("../models/userModel");
 
 const authentication = async function (req, res, next) {
     try {
-        let token = req.headers["x-api-key"];
-        if (!token) token = req.headers["x-Api-Key"];
-        if (!token) return res.status(400).send({ status: false, msg: "token must be present in header" });
+        let token = req.headers["authentication"];
+        if (!token) token = req.headers["Authentication"];
+        if (!token) return res.status(404).send({ status: false, msg: "token must be present in header" });
         console.log(token);
         let decodedToken = jwt.verify(token, process.env.JWT_SECRET, (err, decodedToken) => {
             if (err) {
-                return res.status(400).send({ msg: "Error", error: "invalid token" })
+                return res.status(401).send({ msg: "Error", error: "invalid token" })
+            } else {
+                console.log(decodedToken)
+                if (decodedToken.userId && decodedToken.gstin) {
+                    req.userId = decodedToken.userId
+                    req.gstin = decodedToken.gstin
+                } else if (decodedToken.adminId) {
+                    req.adminId = decodedToken.adminId
+                }
+
             }
+            next()
         });
 
-
-        req.userId = decodedToken.userId
-        console.log(req.authorid)
         next()
     }
     catch (err) {
@@ -35,7 +42,6 @@ const authentication = async function (req, res, next) {
 const authorisation = async function (req, res, next) {
     try {
         let userId = req.params.userId;
-
         // if userId is not a valid ObjectId
         if (!isValidObjectId(userId)) {
             res

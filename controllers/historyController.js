@@ -93,6 +93,14 @@ const getImageHistoryByUserType = async (req, res) => {
 const updateBillHistory = async (req, res) => {
     // 1. Validate required fields with a single destructuring and early return for clarity
     const { billId, billType } = req.params;
+    let getBill = billType === 'seller' ? await sellerBillModel.findById(billId) : await purchaserBillModel.findById(billId)
+    if (!getBill) {
+        return res.status(404).send({ status: false, msg: "No bill available with this id  " });
+    }
+    if (req.gstin !== getBill.userGSTIN) {
+        return res.status(403).send({ status: false, msg: "Please log in with a valid account or Id" })
+    }
+
     const {
 
         invoiceNo,
@@ -131,16 +139,14 @@ const updateBillHistory = async (req, res) => {
     }
 
     const formattedDate = moment(invoiceDate, "DD/MM/YYYY").format("YYYY-MM-DD");
-    let getBill = billType === 'seller' ? await sellerBillModel.findById(billId) : await purchaserBillModel.findById(billId)
-    if (!getBill) {
-        return res.status(404).send({ status: false, msg: "No bill available with this id  " });
-    }
+
     console.log(getBill)
     let SGST, CGST, IGST
     // 4. Combine validation with database check for efficiency
     if (billType == 'seller' && getBill?.sellerType == 'cashSale') {
         SGST = CGST = (Number(grandTotal) - Number(totalAmount)) / 2
     } else {
+
         const query = {
             invoiceNo: invoiceNo.trim(),
             invoiceDate: formattedDate,

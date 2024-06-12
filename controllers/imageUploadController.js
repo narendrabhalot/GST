@@ -7,6 +7,9 @@ const moment = require('moment');
 // Function to handle image upload and database storage
 const uploadImage = async (req, res) => {
     const { userType, gstin } = req.params
+    if (req.gstin !== gstin) {
+        return res.status(403).send({ status: false, msg: "Please log in with a valid account or Id" })
+    }
 
     if (!userType || (userType !== 'seller' && userType !== "purchaser")) {
         return res.status(400).send({ status: false, msg: "Invalid user type. Must be 'seller' or 'purchaser'" });

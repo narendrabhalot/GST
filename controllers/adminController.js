@@ -24,7 +24,7 @@ const adminLogin = async (req, res) => {
         if (!admin) {
             return res.status(401).send({ status: false, msg: "Incorrect emailId or password" });
         }
-        const token = jwt.sign({ adminId: admin._id.toString() }, 'GST');
+        const token = jwt.sign({ adminId: admin._id.toString() }, process.env.JWT_SECRET);
         return res.status(201).send({
             status: true,
             msg: 'admin  login  successfully!',

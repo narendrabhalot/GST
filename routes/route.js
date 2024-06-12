@@ -14,6 +14,7 @@ const { createLoan } = require('../controllers/loanController')
 const { createPlan, createSubPlan, deletePlan, updateSubPlan, getPlan, getMyPlan, getPlanById, getPlanWithSubPlan, deletedPlan } = require('../controllers/planController')
 const { createComposite } = require('../controllers/compositeController')
 const { getBillHistoryByUserType, getImageHistoryByUserType, updateBillHistory, getFilingHistory } = require('../controllers/historyController')
+const { authentication } = require('../middleware/auth')
 
 
 
@@ -22,17 +23,17 @@ const { getBillHistoryByUserType, getImageHistoryByUserType, updateBillHistory, 
 router.post('/register', createUser)
 router.post('/send-otp', sendOTP)
 router.post('/verify-otp', verifyOTP)
-router.post('/userBill/:gstin', createUserBill)
-router.post('/user/:gstin', updateUserPlanByGSTIN)
+router.post('/userBill/:gstin', authentication, createUserBill)
+router.post('/user/:gstin', authentication, updateUserPlanByGSTIN)
 
 
 // for bill route 
 router.get('/getBill/:billType', getBillByDateRangeAndUserGSTIN)
 
 // Image Upload route
-router.post('/upload-image/:gstin/:userType', imageUpload, uploadImage)
-router.get('/images/:type', getImage)
-router.get('/imageDate', getImageByDateRange)
+router.post('/upload-image/:gstin/:userType', authentication, imageUpload, uploadImage)
+router.get('/images/:type', authentication, getImage)
+router.get('/imageDate', authentication, getImageByDateRange)
 
 
 // for loan route
@@ -41,33 +42,33 @@ router.post('/loan', createLoan)
 
 // for reconciliation 
 
-router.get('/reconciliation/:gstin', getReconciliationByGSTIN)
+router.get('/reconciliation/:gstin', authentication, getReconciliationByGSTIN)
 
 
 // for plan and Sub plan apis 
 
-router.get('/plan-subplan', getPlanWithSubPlan)
-router.get('/plan/:id', getPlanById)
-router.get('/myPlan/:gstin', getMyPlan)
-router.delete('/plan/:id', deletePlan)
+router.get('/plan-subplan', authentication, getPlanWithSubPlan)
+router.get('/plan/:id', authentication, getPlanById)
+router.get('/myPlan/:gstin', authentication, getMyPlan)
+router.delete('/plan/:id', authentication, deletePlan)
 
 
 
 // for history api
-router.get('/billHistory/:gstin/:userType', getBillHistoryByUserType)
-router.get('/imageHistory/:gstin/:userType', getImageHistoryByUserType)
-router.put('/bill-History/:billId/:billType', updateBillHistory)
-router.get('/filling/:userGSTIN', getFilingHistory)
+router.get('/billHistory/:gstin/:userType', authentication, getBillHistoryByUserType)
+router.get('/imageHistory/:gstin/:userType', authentication, getImageHistoryByUserType)
+router.put('/bill-History/:billId/:billType', authentication, updateBillHistory)
+router.get('/filling/:userGSTIN', authentication, getFilingHistory)
 
 
 // for composite API
-router.post('/composite', createComposite)
+router.post('/composite', authentication, createComposite)
 
 
 //   ***************************    ADMIN  API ****************** 
 
 // for user   api 
-router.get('/user', getUser)
+router.get('/user', authentication, getUser)
 router.put('/user/:id', updateUser)
 
 

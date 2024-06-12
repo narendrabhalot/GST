@@ -105,6 +105,9 @@ const getReconciliationByGSTIN = async (req, res) => {
     try {
         const gstin = req.params.gstin
         const IST_TIMEZONE = 'Asia/Kolkata';
+        if (req.gstin !== gstin) {
+            return res.status(403).send({ status: false, msg: "Please log in with a valid account or Id" })
+        }
         function getFinancialYearStartDate() {
             const currentDate = moment();
             const financialMonth = 2;

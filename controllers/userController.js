@@ -57,6 +57,10 @@ const updateUserPlanByGSTIN = async (req, res) => {
     if (!planName || !tabs || !subPlanName || !price) {
         return res.send({ status: false, msg: "planName or tabs or subPlanName or price  reuired" })
     }
+    /// check authorization 
+    if (req.gstin !== userGSTIN) {
+        return res.status(403).send({ status: false, msg: "Please log in with a valid account or Id" })
+    }
     try {
         const user = await userModel.findOne({ gstin: userGSTIN });
         if (!user) {
