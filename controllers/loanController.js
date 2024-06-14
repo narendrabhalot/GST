@@ -1,6 +1,7 @@
 const loanModel = require('../models/loanModel');
 const userModel = require('../models/userModel')
 const { loanValidation } = require('../util/validate')
+const moment = require('moment')
 const createLoan = async (req, res) => {
     const value = await loanValidation(req.body)
     console.log(value)
@@ -43,7 +44,7 @@ const createLoan = async (req, res) => {
 
 const getLoans = async (req, res) => {
     try {
-        const loans = await loanModel.find().select({updatedAt:0,__v:0})
+        const loans = await loanModel.find().select({ updatedAt: 0, __v: 0 ,createdAt:0});
 
         if (!loans || loans.length === 0) { // Check for empty array
             return res.status(404).send({
@@ -51,10 +52,14 @@ const getLoans = async (req, res) => {
                 msg: "No loans found."
             });
         }
+        const formattedLoans = loans.map(loan => ({
+            ...loan.toObject(),
+           loanDate: moment(loan.createdAt).format('YYYY-MM-DD')
+        }));
 
         return res.status(200).send({
             status: true,
-            data: loans
+            data: formattedLoans
         });
     } catch (err) {
         console.error(err); // Log the error for debugging

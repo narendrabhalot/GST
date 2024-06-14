@@ -1,6 +1,6 @@
 const { string } = require("joi");
 const { default: mongoose } = require("mongoose");
-
+const moment = require('moment')
 const createLoanSchema = new mongoose.Schema({
     gstinNo: {
         type: String,
@@ -16,4 +16,7 @@ const createLoanSchema = new mongoose.Schema({
         enum: ["Home loan", "Business loan", "Vehicle loan", "Loan against Insurance", "Working Capital loan", "Personal Loan", "Short term business loan", "Education Loan", "Credit Cards"]
     }
 }, { timestamps: true })
+
+
+
 module.exports = mongoose.model('loan', createLoanSchema)
