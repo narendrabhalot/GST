@@ -40,4 +40,29 @@ const createLoan = async (req, res) => {
         });
     }
 };
-module.exports = { createLoan }
+
+const getLoans = async (req, res) => {
+    try {
+        const loans = await loanModel.find().select({updatedAt:0,__v:0})
+
+        if (!loans || loans.length === 0) { // Check for empty array
+            return res.status(404).send({
+                status: false,
+                msg: "No loans found."
+            });
+        }
+
+        return res.status(200).send({
+            status: true,
+            data: loans
+        });
+    } catch (err) {
+        console.error(err); // Log the error for debugging
+        res.status(500).send({
+            status: false,
+            msg: "Error retrieving loans.",
+            error: err.message
+        });
+    }
+};
+module.exports = { createLoan, getLoans }

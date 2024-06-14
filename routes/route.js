@@ -8,9 +8,9 @@ const { uploadImage, getImage, getImageByDateRange } = require('../controllers/i
 const { uploadB2BExcelFile } = require('../controllers/b2bPurchaserController')
 const { uploadB2BAExcelFile } = require('../controllers/b2baPurchaserController')
 const { createReconciliation, getReconciliationByGSTIN } = require('../controllers/reconciliationController')
-const { uploadExcelFile } = require('../controllers/excelFileController')
+const { uploadExcelFile, getExcelFileFromUpload } = require('../controllers/excelFileController')
 const { excelUpload, imageUpload } = require('../middleware/uplodImageAndExcelMiddleware')
-const { createLoan } = require('../controllers/loanController')
+const { createLoan, getLoans } = require('../controllers/loanController')
 const { createPlan, createSubPlan, deletePlan, updateSubPlan, getPlan, getMyPlan, getPlanById, getPlanWithSubPlan, deletedPlan } = require('../controllers/planController')
 const { createComposite } = require('../controllers/compositeController')
 const { getBillHistoryByUserType, getImageHistoryByUserType, updateBillHistory, getFilingHistory } = require('../controllers/historyController')
@@ -33,6 +33,10 @@ router.get('/getBill/:billType', getBillByDateRangeAndUserGSTIN)
 router.post('/upload-image/:gstin/:userType', imageUpload, uploadImage)
 router.get('/images/:type', getImage)
 router.get('/imageDate', getImageByDateRange)
+
+
+/// upload excel user route 
+router.post('/upload-excel/:billType/:gstin', excelUpload, uploadExcelFile)   //// user  upload excel 
 
 
 // for loan route
@@ -78,9 +82,11 @@ router.post('/adminLogIn', adminLogin)
 //for excel api 
 
 // for excel file router 
-router.post('/upload-excel/:billType/:id', excelUpload)   //// admin upload excel for apecific user GSTIN 
+
 router.post('/upload-b2bexcel/:gstin', excelUpload, uploadB2BExcelFile)
 router.post('/upload-b2baexcel', excelUpload, uploadB2BAExcelFile)
+router.get('/excel', getExcelFileFromUpload)
+
 
 // for  reconciliation api 
 router.post('/reconciliation', createReconciliation)    // create reconciliation data 
@@ -90,6 +96,14 @@ router.post('/plan', createPlan)   /// carete plan and subplan
 router.get('/plan', getPlan)       // get all plan with subplan 
 router.post('/subPlan/:planId', createSubPlan)   //  add new sub plan when plan already exist 
 router.put('/subPlan/:planId/:subPlanId', updateSubPlan)   //  update sub-plan by plan and sub plan id
+
+
+
+/// for loan api 
+
+router.get('/loan', getLoans)
+
+
 
 router.all("/*", function (req, res) {
   res

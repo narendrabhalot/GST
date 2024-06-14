@@ -21,6 +21,6 @@ app.use("/", route);
 mongoose.connect(dbConnectionString, {
     useUnifiedTopology: true, useNewUrlParser: true
 })
-app.listen(`${process.env.PORT || PORT}`, function () {
+app.listen(`${process.env.PORT || PORT}`, function() {
     console.log(`Express app running on port ${process.env.PORT || PORT} `);
-});
+}); 
