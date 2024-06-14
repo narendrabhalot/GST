@@ -36,7 +36,10 @@ const getDatesByPlanType = (userPlan, month) => {
     };
 };
 const getBillHistoryByUserType = async (req, res) => {
-    const { gstin, userType } = req.params;
+    const { gstin, userType } = req.query
+    if (!gstin || !userType) {
+        return res.status(400).send({ status: false, error: ' GSTIN and User type required in query parameters ' });
+    }
     try {
         if (!isValidUserType(userType)) {
             return res.status(400).send({ status: false, error: 'User type must be seller or purchaser' });
@@ -46,12 +49,13 @@ const getBillHistoryByUserType = async (req, res) => {
             return res.status(404).send({ status: false, msg: "Unregistered GSTIN number." });
         }
         const userPlanType = getUser.filingPeriod;
-        const { startDate } = getDatesByPlanType(userPlanType, moment().month());
+        const { startDate, endDate } = getDatesByPlanType(userPlanType, moment().month());
 
         const formattedStartDate = moment(startDate, "DD/MM/YYYY").toDate(); // Convert to Date object
+        const formattedendDate = moment(endDate, "DD/MM/YYYY").toDate(); // Convert to Date object
         console.log(formattedStartDate)
         const billModel = userType === 'seller' ? sellerBillModel : purchaserBillModel;
-        const billData = await billModel.find({ userGSTIN: gstin, createdAt: { $gte: formattedStartDate } });
+        const billData = await billModel.find({ userGSTIN: gstin, createdAt: { $gte: formattedStartDate, $lte: formattedendDate } });
         if (billData.length > 0) {
             return res.status(200).send({ status: true, msg: `Retrieved ${userType} bills successfully`, data: billData });
         } else {

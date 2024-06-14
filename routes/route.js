@@ -24,8 +24,6 @@ router.post('/send-otp', sendOTP)
 router.post('/verify-otp', verifyOTP)
 router.post('/userBill/:gstin', createUserBill)
 router.post('/user/:gstin', updateUserPlanByGSTIN)
-
-
 // for bill route 
 router.get('/getBill/:billType', getBillByDateRangeAndUserGSTIN)
 
@@ -58,7 +56,7 @@ router.delete('/plan/:id', deletePlan)
 
 
 // for history api
-router.get('/billHistory/:gstin/:userType', getBillHistoryByUserType)
+router.get('/billHistory', getBillHistoryByUserType)
 router.get('/imageHistory/:gstin/:userType', getImageHistoryByUserType)
 router.put('/bill-History/:billId/:billType', updateBillHistory)
 router.get('/filling/:userGSTIN', getFilingHistory)
