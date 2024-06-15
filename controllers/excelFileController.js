@@ -1,8 +1,9 @@
 const sellerBillModel = require('../models/sellerBillModel')
 const purchaserBillModel = require('../models/purchaserBillModel')
+
 const userModel = require('../models/userModel');
+const fs = require('fs').promises; // Import fs promises for asynchronous operations
 const path = require('path');
-const fs = require('fs');
 const { billValidation, isValidRequestBody } = require("../util/validate");
 const xlsx = require("xlsx");
 async function uploadExcelFile(req, res) {
@@ -123,20 +124,54 @@ async function uploadExcelFile(req, res) {
         // }
     } catch (error) {
         console.error('Error processing and saving data:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        res.status(500).json({ errors: 'Internal server error', error: error });
     }
 }
 async function getExcelFileFromUpload(req, res) {
-    const filePath = path.join(__dirname, '../uploads/12ABCDE0000A1Z4/2024/june/032024_22ASDFG1234Q1Z3_GSTR2B_02062024 (1).xlsx');
-    console.log(filePath);
-    if (fs.existsSync(filePath)) {
-        res.download(filePath);
-    } else {
-        res.status(404).send('File not found');
+    let { userGSTIN, month, year } = req.query;
+
+    // Validate required parameters
+    if (!userGSTIN || !month || !year) {
+        return res.status(400).json({ error: 'Missing required query parameters: userGSTIN, month, year' });
+    }
+
+    // Sanitize user input to prevent path traversal attacks
+    // userGSTIN = path.normalize(userGSTIN);
+    // month = path.normalize(month);
+    // year = path.normalize(year);
+
+    let directoryPath = path.join(__dirname, "../uploads", "excel", userGSTIN, year, month);
+    directoryPath = path.normalize(directoryPath);
+    console.log(directoryPath);
+
+    try {
+        // Check if directory exists
+        await fs.access(directoryPath, fs.constants.F_OK);
+
+        // Read files in the directory
+        const files = await fs.readdir(directoryPath);
+        console.log(files)
+        if (files.length === 0) {
+            return res.status(200).json({ data: [] }); // No Excel files found, but successful response
+        }
+        let filePath = path.join(directoryPath, files[0]);
+        res.sendFile(filePath, (err) => {
+            if (err) {
+                console.error('Error downloading file:', err);
+                res.status(500).send('Error downloading file');
+            } else {
+                console.log('File downloaded successfully');
+                // Optionally, you can send a success message to the client
+            }
+        });
+    } catch (err) {
+        if (err.code === 'ENOENT') { // Check for ENOENT (file or directory not found)
+            return res.status(404).json({ error: 'Directory not found' });
+        }
+        console.error('Error accessing directory:', err);
+        return res.status(500).json({ error: 'Internal server error', error: err.message }); // Generic error for security
     }
 }
-
-
 module.exports = { uploadExcelFile, getExcelFileFromUpload };
 
 

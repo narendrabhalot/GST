@@ -11,7 +11,7 @@ const imageStorage = multer.diskStorage({
         const gstin = req.params.gstin;
         const year = new Date().getFullYear();
         const monthName = new Date().toLocaleString('default', { month: 'long' });
-        const uploadPath = path.join('uploads', gstin, String(year), monthName);
+        const uploadPath = path.join('uploads', 'image', gstin, String(year), monthName);
         fs.mkdirSync(uploadPath, { recursive: true });
         cb(null, uploadPath);
     },
@@ -31,19 +31,27 @@ const imageUpload = uploadImage.array("image");
 
 
 const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
+    destination: async function (req, file, cb) {
         const gstin = req.params.gstin;
         const year = new Date().getFullYear();
         const monthName = new Date().toLocaleString('default', { month: 'long' });
-        const uploadPath = path.join('uploads', "user", gstin, String(year), monthName);
-        fs.mkdirSync(uploadPath,{ recursive: true });
-        cb(null, uploadPath);
+        const uploadPath = path.join('uploads', "excel", gstin, String(year), monthName);
+
+        try {
+            await fs.promises.mkdir(uploadPath, { recursive: true }); // Create directory structure recursively
+            cb(null, uploadPath);
+        } catch (err) {
+            console.error('Error creating upload directory:', err);
+            // Handle errors appropriately (e.g., return error to client)
+            cb(err, null); // Pass error back to Multer for handling
+        }
     },
     filename: function (req, file, cb) {
-        const uniquePrefix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, uniquePrefix + '-' + file.originalname);
+        // const uniquePrefix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, file.originalname);
     }
 });
+
 const fileFilter = (req, file, cb) => {
     const ext = path.extname(file.originalname);
     if (ext === '.xlsx') {
