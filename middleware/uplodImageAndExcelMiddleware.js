@@ -6,14 +6,17 @@ const app = express();
 app.use(express.urlencoded({ extended: true }));
 const imageStorage = multer.diskStorage({
     destination: function (req, file, cb) {
-
-        // Access the GSTIN from req.params if needed
         const gstin = req.params.gstin;
         const year = new Date().getFullYear();
         const monthName = new Date().toLocaleString('default', { month: 'long' });
         const uploadPath = path.join('uploads', 'image', gstin, String(year), monthName);
-        fs.mkdirSync(uploadPath, { recursive: true });
-        cb(null, uploadPath);
+        if (req.role && req.role != 'User') {
+            cb(null, uploadPath);
+        } else {
+            fs.mkdirSync(uploadPath, { recursive: true });
+            cb(null, uploadPath);
+        }
+
     },
     filename: function (req, file, cb) {
         const uniquePrefix = Date.now() + '-' + Math.round(Math.random() * 1E9);

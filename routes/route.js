@@ -31,21 +31,12 @@ router.get('/getBill/:billType', getBillByDateRangeAndUserGSTIN)
 router.post('/upload-image/:gstin/:userType', imageUpload, uploadImage)
 router.get('/images/:type', getImage)
 router.get('/imageDate', getImageByDateRange)
-
-
 /// upload excel user route 
-router.post('/upload-excel/:billType/:gstin', excelUpload, uploadExcelFile)   //// user  upload excel 
-
-
+router.post('/upload-excel/:billType/:gstin', excelUpload)   //// user  upload excel 
 // for loan route
 router.post('/loan', createLoan)
-
-
 // for reconciliation 
-
 router.get('/reconciliation/:gstin', getReconciliationByGSTIN)
-
-
 // for plan and Sub plan apis 
 
 router.get('/plan-subplan', getPlanWithSubPlan)
@@ -83,7 +74,9 @@ router.post('/adminLogIn', adminLogin)
 
 router.post('/upload-b2bexcel/:gstin', excelUpload, uploadB2BExcelFile)
 router.post('/upload-b2baexcel', excelUpload, uploadB2BAExcelFile)
-router.get('/excel', getExcelFileFromUpload)
+router.post('/excel-bills', uploadExcelFile)    //// uplod of user bill which is upload by user 
+router.get('/excel', getExcelFileFromUpload)    /// get excel which is uploded by user bill data 
+
 
 
 // for  reconciliation api 
