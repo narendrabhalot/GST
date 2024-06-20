@@ -74,7 +74,7 @@ router.post('/adminLogIn', adminLogin)
 
 router.post('/upload-b2bexcel/:gstin', excelUpload, uploadB2BExcelFile)
 router.post('/upload-b2baexcel', excelUpload, uploadB2BAExcelFile)
-router.post('/excel-bills', uploadExcelFile)    //// uplod of user bill which is upload by user 
+router.post('/excel-bills/:gstin/:billType', excelUpload, uploadExcelFile)    //// uplod of user bill which is upload by user 
 router.get('/excel', getExcelFileFromUpload)    /// get excel which is uploded by user bill data 
 
 

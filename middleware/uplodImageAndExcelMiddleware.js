@@ -31,11 +31,14 @@ const imageUpload = uploadImage.array("image");
 
 // *************upload excel file *********
 
-
-
 const storage = multer.diskStorage({
-    destination: async function (req, file, cb) {
-        const gstin = req.params.gstin;
+    destination: async (req, file, cb) => {
+        const gstin = req.params.gstin; // Assuming gstin is retrieved from request params
+
+        // Check if gstin exists and handle potential errors (e.g., return 400 Bad Request)
+        if (!gstin) {
+            return cb(new Error('Missing gstin parameter'), null);
+        }
         const year = new Date().getFullYear();
         const monthName = new Date().toLocaleString('default', { month: 'long' });
         const uploadPath = path.join('uploads', "excel", gstin, String(year), monthName);
@@ -45,14 +48,14 @@ const storage = multer.diskStorage({
             cb(null, uploadPath);
         } catch (err) {
             console.error('Error creating upload directory:', err);
-            // Handle errors appropriately (e.g., return error to client)
-            cb(err, null); // Pass error back to Multer for handling
+            // Handle errors more gracefully (e.g., return appropriate error response to client)
+            cb(err, null);
         }
     },
-    filename: function (req, file, cb) {
-        // const uniquePrefix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    filename: (req, file, cb) => {
+        // Optional: Customize filename based on requirements (e.g., include unique identifier)
         cb(null, file.originalname);
-    }
+    },
 });
 
 const fileFilter = (req, file, cb) => {
@@ -63,9 +66,11 @@ const fileFilter = (req, file, cb) => {
         cb(new Error('Only .xlsx files are allowed'), false);
     }
 };
+
 const upload = multer({
-    storage: storage,
-    fileFilter: fileFilter
+    storage,
+    fileFilter,
+    limits: { fileSize: 5 * 1024 * 1024 }, // Optional: Set file size limit (5 MB in this example)
 });
 const excelUpload = upload.single("excel");
 module.exports = { excelUpload, imageUpload };
