@@ -4,7 +4,8 @@ const { sellerBillvalidation, purchaserBillvalidation, isValidRequestBody } = re
 const { checkInvoiceExistence } = require('../util/utils');
 const userModel = require('../models/userModel');
 const moment = require('moment')
-const fs = require('fs').promises; // Import fs promises for asynchronous operations
+const fs = require('fs');
+const fsPromises = require('fs').promises;
 const path = require('path');
 
 const xlsx = require("xlsx");
@@ -137,35 +138,38 @@ async function uploadExcelFile(req, res) {
     }
 }
 async function getExcelFileFromUpload(req, res) {
-    let { gstin, month, year } = req.query;
+    let { userGSTIN, month, year } = req.query;
+    console.log(userGSTIN, month, year)
     // Validate required parameters
-    if (!gstin || !month || !year) {
+    if (!userGSTIN || !month || !year) {
         return res.status(400).json({ error: 'Missing required query parameters: gstin, month, year' });
     }
-    let directoryPath = path.join(__dirname, "../uploads", "excel", gstin, year, month);
+    let directoryPath = path.join(__dirname, "../uploads", "excel", userGSTIN, year, month);
     directoryPath = path.normalize(directoryPath);
     console.log(directoryPath);
     try {
-        // Check if directory exists
-        await fs.access(directoryPath, fs.constants.F_OK);
-
+        await fsPromises.access(directoryPath, fs.constants.F_OK);
         // Read files in the directory
-        const files = await fs.readdir(directoryPath);
-        console.log(files)
+        const files = await fsPromises.readdir(directoryPath);
         if (files.length === 0) {
-            return res.status(404).json({ status: false, msg: "No excel available for submitted GSTIN" }); // No Excel files found, but successful response
+            return res.status(404).json({ status: false, msg: "No Excel available for submitted GSTIN" });
         }
-        let filePath = path.join(directoryPath, files[0]);
-        res.sendFile(filePath, (err) => {
-            if (err) {
-                console.error('Error downloading file:', err);
-                res.status(500).send('Error downloading file');
-            } else {
-                console.log('File downloaded successfully');
-                return res.status(200).send({ status: true, msg: "File downloaded successfully" });
-                // Optionally, you can send a success message to the client
-            }
+        const excelFile = files.find(file => file.endsWith('.xlsx') || file.endsWith('.xls'));
+        if (!excelFile) {
+            return res.status(404).json({ status: false, msg: "No valid Excel file found" });
+        }
+        const filePath = path.join(directoryPath, excelFile);
+
+        res.setHeader('Content-Disposition', `attachment; filename=${excelFile}`);
+        res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+
+        const readStream = fs.createReadStream(filePath);
+        readStream.on('error', (err) => {
+            console.error('Error reading file:', err);
+            res.status(500).send('Error downloading file');
         });
+        readStream.pipe(res);
+
     } catch (err) {
         if (err.code === 'ENOENT') { // Check for ENOENT (file or directory not found)
             return res.status(404).json({ error: 'Directory not found' });
