@@ -1,4 +1,4 @@
-const { object } = require('joi');
+const { object, required } = require('joi');
 const mongoose = require('mongoose');
 const registrationSchema = new mongoose.Schema({
     businessName: {
@@ -61,6 +61,12 @@ const registrationSchema = new mongoose.Schema({
         trim: true,
         default: 0
     },
+    role:{
+        type:String,
+        required:true,
+        enum:["user","admin"],
+        default:"user"
+    }
 
 }, { "timestamps": true });
 

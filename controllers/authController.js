@@ -1,5 +1,6 @@
 
 const UserModel = require('../models/userModel');
+const jwt = require('jsonwebtoken')
 const { sendSMS, verifySMS } = require('../util/otp');
 const clientId = process.env.CLIENT_ID;
 const clientSecret = process.env.CLIENT_SECRET;
@@ -10,14 +11,7 @@ const otpGenerator = require('otp-generator');
 
 
 let orderId;
-function generateOTP() {
-    const digits = '0123456789';
-    let otp = '';
-    for (let i = 0; i < 6; i++) {
-        otp += digits[Math.floor(Math.random() * 10)];
-    }
-    return otp;
-}
+
 const sendOTP = async (req, res) => {
     const { mobileNumber } = req.body;
     try {
@@ -66,6 +60,7 @@ const verifyOTP = async (req, res) => {
             });
         }
         let getUser = await UserModel.findOne({ mobileNumber: mobileNumber })
+        console.log(getUser)
         if (!getUser) {
             return res.status(404).json({ status: false, message: 'This mobileNumber number is not registerd ' });
         }
@@ -83,7 +78,11 @@ const verifyOTP = async (req, res) => {
                 return res.status(400).json({ status: false, message: 'Error during verify OTP', error: verifyOTP.reason });
             }
         }
-        res.status(200).send({ status: true, message: 'OTP verification successful', data: getUser });
+        const token = jwt.sign({ user: getUser }, process.env.JWT_SECRET);
+        if (!token) {
+            res.status(400).send({ status: false, message: 'token is not genrated', });
+        }
+        res.status(200).send({ status: true, message: 'OTP verification successful', data: getUser, token: token });
     } catch (error) {
         console.error(error);
         res.status(500).json({ status: false, message: 'Error verifying OTP' });

@@ -136,9 +136,11 @@ const updateBillHistory = async (req, res) => {
 
     const formattedDate = moment(invoiceDate, "DD/MM/YYYY").format("YYYY-MM-DD");
     let getBill = billType === 'seller' ? await sellerBillModel.findById(billId) : await purchaserBillModel.findById(billId)
+
     if (!getBill) {
         return res.status(404).send({ status: false, msg: "No bill available with this id  " });
     }
+    if(req.user.gstin != getBill.userGSTIN)
     console.log(getBill)
     let SGST, CGST, IGST
     // 4. Combine validation with database check for efficiency

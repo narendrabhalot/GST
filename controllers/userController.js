@@ -53,10 +53,17 @@ const createUser = async (req, res) => {
 };
 const updateUserPlanByGSTIN = async (req, res) => {
     const userGSTIN = req.params.gstin
+    console.log(req.user.gstin)
+    if (req.user.gstin != userGSTIN) {
+        return res.status(403).send({ status: false, msg: "Unauthorized user" })
+    }
     const { planName, tabs, subPlanName, price } = req.body;  // Assuming req.body contains the new value for 'isPlan'
     if (!planName || !tabs || !subPlanName || !price) {
         return res.send({ status: false, msg: "planName or tabs or subPlanName or price  reuired" })
     }
+
+
+
     try {
         const user = await userModel.findOne({ gstin: userGSTIN });
         if (!user) {
