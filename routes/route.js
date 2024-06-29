@@ -14,10 +14,6 @@ const { createLoan, getLoans } = require('../controllers/loanController')
 const { createPlan, createSubPlan, deletePlan, updateSubPlan, getPlan, getMyPlan, getPlanById, getPlanWithSubPlan, deletedPlan } = require('../controllers/planController')
 const { createComposite } = require('../controllers/compositeController')
 const { getBillHistoryByUserType, getImageHistoryByUserType, updateBillHistory, getFilingHistory } = require('../controllers/historyController')
-
-
-
-
 ///// *******************   APP APIS **********************
 router.post('/register', createUser)
 router.post('/send-otp', sendOTP)
@@ -31,8 +27,10 @@ router.get('/getBill/:billType', getBillByDateRangeAndUserGSTIN)
 router.post('/upload-image/:gstin/:userType', imageUpload, uploadImage)
 router.get('/images/:type', getImage)
 router.get('/imageDate', getImageByDateRange)
-/// upload excel user route 
-router.post('/upload-excel/:billType/:gstin', excelUpload)   //// user  upload excel 
+
+// upload excel user route 
+
+router.post('/uploadexcel/:billType/:gstin', excelUpload)
 // for loan route
 router.post('/loan', createLoan)
 // for reconciliation 
@@ -44,18 +42,13 @@ router.get('/plan/:id', getPlanById)
 router.get('/myPlan/:gstin', getMyPlan)
 router.delete('/plan/:id', deletePlan)
 
-
-
 // for history api
 router.get('/billHistory', getBillHistoryByUserType)
 router.get('/imageHistory/:gstin/:userType', getImageHistoryByUserType)
 router.put('/bill-History/:billId/:billType', updateBillHistory)
 router.get('/filling/:userGSTIN', getFilingHistory)
-
-
 // for composite API
 router.post('/composite', createComposite)
-
 
 //   ***************************    ADMIN  API ****************** 
 
@@ -64,19 +57,14 @@ router.get('/user', getUser)
 router.put('/user/:id', updateUser)
 
 
+
 // For  create admin
 router.post('/admin', creatAdmin)
 router.post('/adminLogIn', adminLogin)
-
-//for excel api 
-
-// for excel file router 
-
 router.post('/upload-b2bexcel/:gstin', excelUpload, uploadB2BExcelFile)
 router.post('/upload-b2baexcel', excelUpload, uploadB2BAExcelFile)
 router.post('/excel-bills/:gstin/:billType', excelUpload, uploadExcelFile)    //// uplod of user bill which is upload by user 
-router.get('/excel', getExcelFileFromUpload)    /// get excel which is uploded by user bill data 
-
+router.get('/excel', getExcelFileFromUpload)
 
 
 // for  reconciliation api 
@@ -96,9 +84,9 @@ router.get('/loan', getLoans)
 
 
 
-router.all("/*", function (req, res) {
-  res
-    .status(404)
-    .send({ status: false, msg: "The api you requested is not available" });
-});
+// router.all("/*", function (req, res) {
+//   res
+//     .status(404)
+//     .send({ status: false, msg: "The api you requested is not available" });
+// });
 module.exports = router;

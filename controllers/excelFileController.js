@@ -76,6 +76,22 @@ async function uploadExcelFile(req, res) {
         if (billType == "seller") {
             for (let item of data) {
                 let { invoiceNo, invoiceDate, sellerGSTIN, sellerName, totalAmount, gstRate, grandTotal, SGST, CGST, IGST, Cess } = item;
+                const newItem = {
+                    userGSTIN: gstin,
+                    invoiceNo,
+                    invoiceDate,
+                    sellerGSTIN,
+                    sellerName,
+                    totalAmount,
+                    gstRate,
+                    grandTotal,
+                    Cess,
+                };
+                newItem.billType = billType
+                const billValidationResult = await billValidationType(newItem);
+                if (billValidationResult.error) {
+                    return res.status(400).send({ status: false, msg: billValidationResult.error.message });
+                }
                 if (item.sellerType == 'gstSale') {
                     checkduplicateData = await checkInvoiceExistence(sellerBillModel, gstin, item.invoiceDate, item.invoiceNo, item.sellerGSTIN, 'sellerGSTIN')
                     if (checkduplicateData && !checkduplicateData.status) {
@@ -102,9 +118,24 @@ async function uploadExcelFile(req, res) {
                 dataToBeStoreInDb.push(sellerBillData)
             }
         } else {
-
             for (let item of data) {
-                let { invoiceNo, invoiceDate, purchaserGSTIN, purchaserName, totalAmount, gstRate, grandTotal, SGST, CGST, IGST, Cess } = item;
+                let { invoiceNo, invoiceDate, purchaserGSTIN, purchaserName, totalAmount, gstRate, grandTotal, SGST, CGST, IGST, Cess } = item
+                const newItem = {
+                    userGSTIN: gstin,
+                    invoiceNo,
+                    invoiceDate,
+                    purchaserGSTIN,
+                    purchaserName,
+                    totalAmount,
+                    gstRate,
+                    grandTotal,
+                    Cess,
+                };
+                newItem.billType = billType
+                const billValidationResult = await billValidationType(newItem);
+                if (billValidationResult.error) {
+                    return res.status(400).send({ status: false, msg: billValidationResult.error.message });
+                }
                 checkduplicateData = await checkInvoiceExistence(purchaserBillModel, gstin, invoiceDate, invoiceNo, purchaserGSTIN, 'purchaserGSTIN');
                 if (checkduplicateData && !checkduplicateData.status) {
                     continue
