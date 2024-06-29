@@ -1,38 +1,37 @@
 const jwt = require("jsonwebtoken");
 const { isValidObjectId } = require("../util/validate");
 const userModel = require("../models/userModel");
+const getAllowedRoles = require('./roleRoutes')
 
 //=========================================== authentication ===========================================================================================
 
 const authentication = async function (req, res, next) {
     try {
-        let token = req.headers["authentication"];
-        if (!token) token = req.headers["Authentication"];
-        if (!token) return res.status(404).send({ status: false, msg: "token must be present in header" });
-        console.log(token);
+        let token = req.headers["authentication"] || req.headers["Authentication"];
+        if (!token) return res.status(401).send({ status: false, msg: "token must be present in header" });
         let decodedToken = jwt.verify(token, process.env.JWT_SECRET, (err, decodedToken) => {
             if (err) {
                 return res.status(401).send({ msg: "Error", error: "invalid token" })
             } else {
-                console.log(decodedToken)
-                if (decodedToken.userId && decodedToken.gstin) {
-                    req.userId = decodedToken.userId
-                    req.gstin = decodedToken.gstin
-                } else if (decodedToken.adminId) {
-                    req.adminId = decodedToken.adminId
+                console.log(req.path)
+                const allowedRoles = getAllowedRoles(req.path);
+                console.log(allowedRoles)
+                if (!allowedRoles.includes(decodedToken.user.role)) {
+                    return res.status(403).send({ message: "Unauthorized role for this endpoint" });
                 }
-
+                req.user = decodedToken.user
+                next();
             }
-            next()
         });
 
-        next()
-    }
-    catch (err) {
-        console.log("This is the error :", err.message)
-        return res.status(500).send({ msg: "Error", error: err.message })
-    }
 
+
+
+
+    } catch (err) {
+        console.error("Error:", err.message);
+        return res.status(500).send({ msg: "Error", error: err.message });
+    }
 };
 
 

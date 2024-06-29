@@ -97,7 +97,7 @@ const updateBillHistory = async (req, res) => {
     if (!getBill) {
         return res.status(404).send({ status: false, msg: "No bill available with this id  " });
     }
-    if (req.gstin !== getBill.userGSTIN) {
+    if (req.user.gstin !== getBill.userGSTIN) {
         return res.status(403).send({ status: false, msg: "Please log in with a valid account or Id" })
     }
 

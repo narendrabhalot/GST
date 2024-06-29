@@ -58,8 +58,8 @@ const updateUserPlanByGSTIN = async (req, res) => {
         return res.send({ status: false, msg: "planName or tabs or subPlanName or price  reuired" })
     }
     /// check authorization 
-    if (req.gstin !== userGSTIN) {
-        return res.status(403).send({ status: false, msg: "Please log in with a valid account or Id" })
+    if (req.user.gstin !== userGSTIN) {
+        return res.status(403).send({ status: false, msg: "!Unauthorized user" })
     }
     try {
         const user = await userModel.findOne({ gstin: userGSTIN });
@@ -99,6 +99,7 @@ const getUser = async (req, res) => {
 const updateUser = async (req, res) => {
     try {
         const userId = req.params.id;
+        
         const { businessName, schemeType, gstin, address, mobileNumber, gstPortalUserName, filingPeriod, isPlan, otp, itcRemaining, ...rest } = req.body
 
         if (Object.keys(rest).length > 0) {

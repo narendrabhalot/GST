@@ -61,6 +61,12 @@ const registrationSchema = new mongoose.Schema({
         trim: true,
         default: 0
     },
+    role: {
+        type: String,
+        required: true,
+        enum: ['user', 'admin'],
+        default:"user"
+    }
 
 }, { "timestamps": true });
 

@@ -24,11 +24,11 @@ router.post('/register', createUser)
 router.post('/send-otp', sendOTP)
 router.post('/verify-otp', verifyOTP)
 router.post('/userBill/:gstin', authentication, createUserBill)
-router.post('/user/:gstin', authentication, updateUserPlanByGSTIN)
+router.post('/user-update-plan/:gstin', authentication, updateUserPlanByGSTIN)/// *******
 
 
 // for bill route 
-router.get('/getBill/:billType', getBillByDateRangeAndUserGSTIN)
+router.get('/getBill/:billType', authentication, getBillByDateRangeAndUserGSTIN)
 
 // Image Upload route
 router.post('/upload-image/:gstin/:userType', authentication, imageUpload, uploadImage)
@@ -37,20 +37,19 @@ router.get('/imageDate', authentication, getImageByDateRange)
 
 
 // for loan route
-router.post('/loan', createLoan)
+router.post('/loan', authentication, createLoan)
 
 
 // for reconciliation 
-
 router.get('/reconciliation/:gstin', authentication, getReconciliationByGSTIN)
 
 
 // for plan and Sub plan apis 
 
 router.get('/plan-subplan', authentication, getPlanWithSubPlan)
-router.get('/plan/:id', authentication, getPlanById)
+router.get('/plan-id/:id', authentication, getPlanById)  /******** */
 router.get('/myPlan/:gstin', authentication, getMyPlan)
-router.delete('/plan/:id', authentication, deletePlan)
+router.delete('/plan-delete/:id', authentication, deletePlan)   //******* */
 
 
 
@@ -68,8 +67,8 @@ router.post('/composite', authentication, createComposite)
 //   ***************************    ADMIN  API ****************** 
 
 // for user   api 
-router.get('/user', authentication, getUser)
-router.put('/user/:id', updateUser)
+router.get('/users', authentication, getUser)
+router.put('/user-update/:id', authentication, updateUser)     //******** */
 
 
 // For  create admin
@@ -79,22 +78,22 @@ router.post('/adminLogIn', adminLogin)
 //for excel api 
 
 // for excel file router 
-router.post('/upload-excel/:billType/:id', excelUpload)   //// admin upload excel for apecific user GSTIN 
-router.post('/upload-b2bexcel/:gstin', excelUpload, uploadB2BExcelFile)
-router.post('/upload-b2baexcel', excelUpload, uploadB2BAExcelFile)
+router.post('/upload-excel/:billType/:id', authentication, excelUpload)   //// admin upload excel for apecific user GSTIN 
+router.post('/upload-b2bexcel/:gstin', authentication, excelUpload, uploadB2BExcelFile)
+router.post('/upload-b2baexcel', authentication, excelUpload, uploadB2BAExcelFile)
 
 // for  reconciliation api 
-router.post('/reconciliation', createReconciliation)    // create reconciliation data 
+router.post('/create-reconciliation', authentication, createReconciliation)    // create reconciliation data 
 
 //for plan api
-router.post('/plan', createPlan)   /// carete plan and subplan 
-router.get('/plan', getPlan)       // get all plan with subplan 
-router.post('/subPlan/:planId', createSubPlan)   //  add new sub plan when plan already exist 
-router.put('/subPlan/:planId/:subPlanId', updateSubPlan)   //  update sub-plan by plan and sub plan id
+router.post('/plan', authentication, createPlan)   /// carete plan and subplan 
+router.get('/plan', authentication, getPlan)       // get all plan with subplan 
+router.post('/subPlan/:planId', authentication, createSubPlan)   //  add new sub plan when plan already exist 
+router.put('/subPlan/:planId/:subPlanId', authentication, updateSubPlan)   //  update sub-plan by plan and sub plan id
 
 router.all("/*", function (req, res) {
-  res
-    .status(404)
-    .send({ status: false, msg: "The api you requested is not available" });
+    res
+        .status(404)
+        .send({ status: false, msg: "The api you requested is not available" });
 });
 module.exports = router;

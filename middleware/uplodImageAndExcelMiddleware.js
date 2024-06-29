@@ -23,13 +23,13 @@ const imageStorage = multer.diskStorage({
 const uploadImage = multer({ storage: imageStorage });
 const imageUpload = uploadImage.array("image");
 
-
-
-
 // *************upload excel file *********
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         const gstin = req.params.gstin;
+        if (!gstin) {
+            gstin = "012345678912345"
+        }
         const year = new Date().getFullYear();
         const monthName = new Date().toLocaleString('default', { month: 'long' });
         const uploadPath = path.join('uploads', gstin, String(year), monthName);

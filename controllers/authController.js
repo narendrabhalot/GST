@@ -84,7 +84,7 @@ const verifyOTP = async (req, res) => {
                 return res.status(400).json({ status: false, message: 'Error during verify OTP', error: verifyOTP.reason });
             }
         }
-        const token = jwt.sign({ userId: getUser._id.toString(), gstin: getUser.gstin }, process.env.JWT_SECRET);
+        const token = jwt.sign({ user: getUser }, process.env.JWT_SECRET);
         if (!token) {
             res.status(400).send({ status: false, message: 'token is not genrated', });
         }
