@@ -53,7 +53,7 @@ const createUser = async (req, res) => {
 };
 const updateUserPlanByGSTIN = async (req, res) => {
     const userGSTIN = req.params.gstin
-    const { planName, tabs, subPlanName, price } = req.body;  // Assuming req.body contains the new value for 'isPlan'
+    const { planName, tabs, subPlanName, price } = req.body;
     if (!planName || !tabs || !subPlanName || !price) {
         return res.send({ status: false, msg: "planName or tabs or subPlanName or price  reuired" })
     }
@@ -99,7 +99,7 @@ const getUser = async (req, res) => {
 const updateUser = async (req, res) => {
     try {
         const userId = req.params.id;
-        
+
         const { businessName, schemeType, gstin, address, mobileNumber, gstPortalUserName, filingPeriod, isPlan, otp, itcRemaining, ...rest } = req.body
 
         if (Object.keys(rest).length > 0) {
