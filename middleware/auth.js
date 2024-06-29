@@ -15,8 +15,6 @@ const authentication = async function (req, res, next) {
                 return res.status(400).send({ msg: "Error", error: "invalid token" })
             }
         });
-
-
         req.userId = decodedToken.userId
         console.log(req.authorid)
         next()
