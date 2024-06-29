@@ -7,6 +7,7 @@ const { createUserBill, getBillByDateRangeAndUserGSTIN } = require('../controlle
 const { uploadImage, getImage, getImageByDateRange } = require('../controllers/imageUploadController')
 const { uploadB2BExcelFile } = require('../controllers/b2bPurchaserController')
 const { uploadB2BAExcelFile } = require('../controllers/b2baPurchaserController')
+const{authentication}=require('../middleware/auth')
 const { createReconciliation, getReconciliationByGSTIN } = require('../controllers/reconciliationController')
 const { uploadExcelFile, getExcelFileFromUpload } = require('../controllers/excelFileController')
 const { excelUpload, imageUpload } = require('../middleware/uplodImageAndExcelMiddleware')
@@ -18,7 +19,8 @@ const { getBillHistoryByUserType, getImageHistoryByUserType, updateBillHistory, 
 router.post('/register', createUser)
 router.post('/send-otp', sendOTP)
 router.post('/verify-otp', verifyOTP)
-router.post('/userBill/:gstin', createUserBill)
+// router.post('/userBill/:gstin', createUserBill)
+router.post('/userBill/:gstin', authentication,createUserBill)
 router.post('/user/:gstin', updateUserPlanByGSTIN)
 // for bill route 
 router.get('/getBill/:billType', getBillByDateRangeAndUserGSTIN)

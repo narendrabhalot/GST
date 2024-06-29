@@ -1,31 +1,33 @@
 const jwt = require("jsonwebtoken");
 const { isValidObjectId } = require("../util/validate");
 const userModel = require("../models/userModel");
+const getAllowedRoles = require('./roleRoute')
 
 //=========================================== authentication ===========================================================================================
 
 const authentication = async function (req, res, next) {
     try {
-        let token = req.headers["x-api-key"];
-        if (!token) token = req.headers["x-Api-Key"];
-        if (!token) return res.status(400).send({ status: false, msg: "token must be present in header" });
-        console.log(token);
+        let token = req.headers["authentication"] || req.headers["Authentication"];
+        if (!token) return res.status(401).send({ status: false, msg: "token must be present in header" });
         let decodedToken = jwt.verify(token, process.env.JWT_SECRET, (err, decodedToken) => {
             if (err) {
-                return res.status(400).send({ msg: "Error", error: "invalid token" })
+                return res.status(401).send({ msg: "Error", error: "invalid token" })
+            } else {
+                console.log(req.path)
+                const allowedRoles = getAllowedRoles(req.path);
+                console.log(allowedRoles)
+                if (!allowedRoles.includes(decodedToken.user.role)) {
+                    return res.status(403).send({ message: "Unauthorized role for this endpoint" });
+                }
+                req.user = decodedToken.user
+                next();
             }
         });
-        req.userId = decodedToken.userId
-        console.log(req.authorid)
-        next()
+    } catch (err) {
+        console.error("Error:", err.message);
+        return res.status(500).send({ msg: "Error", error: err.message });
     }
-    catch (err) {
-        console.log("This is the error :", err.message)
-        return res.status(500).send({ msg: "Error", error: err.message })
-    }
-
 };
-
 
 
 //=========================================== authorisation ============================================================================================
