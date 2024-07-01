@@ -88,8 +88,6 @@ router.put('/updateSubPlan/:planId/:subPlanId', authentication, updateSubPlan)  
 router.delete('/deletePlan/:id', authentication, deletePlan)        //////////////////////******* */
 
 
-
-
 /// for loan api 
 
 router.get('/get-loan', authentication, getLoans)
