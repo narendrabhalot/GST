@@ -110,9 +110,6 @@ const createUserBill = async (req, res) => {
         return res.status(500).json({ status: false, message: "Error registering bill", error: error.message });
     }
 };
-
-
-
 const getBillByDateRangeAndUserGSTIN = async (req, res) => {
     try {
         const { startDate, endDate, userGSTINList } = req.body; // Destructure directly

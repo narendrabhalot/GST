@@ -190,7 +190,7 @@ const getPlan = async (req, res) => {
             // {
             //     $group: {
             //         _id: "$_id",
-            //         h
+            //         
             //         subPlans: { $push: "$subPlans" },
             //         // Add other fields you want to preserve
             //     }

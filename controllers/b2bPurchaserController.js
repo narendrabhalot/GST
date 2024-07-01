@@ -47,6 +47,9 @@ const uploadB2BExcelFile = async (req, res) => {
         if (!req.file) {
             return res.status(400).json({ error: 'No file uploaded' });
         }
+        if (req.user.gstin != req.params.gstin) {
+            return res.status(403).send({ status: false, msg: "Unauthorized user" })
+        }
         console.log(req.file)
         const fileName = req.file.originalname;
         const sheetName = req.body.sheetName

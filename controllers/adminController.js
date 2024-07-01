@@ -24,7 +24,7 @@ const adminLogin = async (req, res) => {
         if (!admin) {
             return res.status(401).send({ status: false, msg: "Incorrect emailId or password" });
         }
-        const token = jwt.sign({ adminId: admin._id.toString() }, 'GST');
+        const token = jwt.sign({ user: admin }, process.env.JWT_SECRET);
         return res.status(201).send({
             status: true,
             msg: 'admin  login  successfully!',
@@ -36,5 +36,4 @@ const adminLogin = async (req, res) => {
         return res.status(500).send({ status: false, msg: "Error logging in" });
     }
 };
-
 module.exports = { creatAdmin, adminLogin }

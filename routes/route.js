@@ -64,18 +64,23 @@ router.put('/user-update/:id', authentication, updateUser)
 
 
 // For  create admin
+
+
+
 router.post('/admin', creatAdmin)
 router.post('/adminLogIn', adminLogin)
 router.post('/upload-b2bexcel/:gstin', authentication, excelUpload, uploadB2BExcelFile)
 router.post('/upload-b2baexcel', authentication, excelUpload, uploadB2BAExcelFile)
 router.post('/excel-bills/:gstin/:billType', authentication, excelUpload, uploadExcelFile)    //// uplod of user bill which is upload by user 
 router.get('/getexcel', authentication, getExcelFileFromUpload)
-
-
 // for  reconciliation api 
+
+
 router.post('/reconciliation', authentication, createReconciliation)    // create reconciliation data 
 
 //for plan api
+
+
 router.post('/create-plan', authentication, createPlan)   /// carete plan and subplan 
 router.get('/get-plan', authentication, getPlan)       // get all plan with subplan 
 router.post('/create-subPlan/:planId', authentication, createSubPlan)   //  add new sub plan when plan already exist 

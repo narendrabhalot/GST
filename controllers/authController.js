@@ -27,8 +27,6 @@ const sendOTP = async (req, res) => {
         if (!user) {
             return res.status(404).json({ status: false, message: 'Register first before login' });
         }
-
-
         console.log(mobileNumber)
         if (user.mobileNumber == '+919714500394') {
             user.otp = { value: "123456" };
