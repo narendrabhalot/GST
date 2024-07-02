@@ -61,11 +61,7 @@ router.get('/users', authentication, getUser)
 // router.put('/user/:id', updateUser)
 router.put('/user-update/:id', authentication, updateUser)
 
-
-
 // For  create admin
-
-
 
 router.post('/admin', creatAdmin)
 router.post('/adminLogIn', adminLogin)
@@ -74,25 +70,16 @@ router.post('/upload-b2baexcel', authentication, excelUpload, uploadB2BAExcelFil
 router.post('/excel-bills/:gstin/:billType', authentication, excelUpload, uploadExcelFile)    //// uplod of user bill which is upload by user 
 router.get('/getexcel', authentication, getExcelFileFromUpload)
 // for  reconciliation api 
-
-
 router.post('/reconciliation', authentication, createReconciliation)    // create reconciliation data 
 
 //for plan api
-
-
 router.post('/create-plan', authentication, createPlan)   /// carete plan and subplan 
 router.get('/get-plan', authentication, getPlan)       // get all plan with subplan 
 router.post('/create-subPlan/:planId', authentication, createSubPlan)   //  add new sub plan when plan already exist 
 router.put('/updateSubPlan/:planId/:subPlanId', authentication, updateSubPlan)   //  update sub-plan by plan and sub plan id
 router.delete('/deletePlan/:id', authentication, deletePlan)        //////////////////////******* */
-
-
 /// for loan api 
-
 router.get('/get-loan', authentication, getLoans)
-
-
 
 // router.all("/*", function (req, res) {
 //   res
