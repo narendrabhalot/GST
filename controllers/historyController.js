@@ -140,8 +140,8 @@ const updateBillHistory = async (req, res) => {
     if (!getBill) {
         return res.status(404).send({ status: false, msg: "No bill available with this id  " });
     }
-    if(req.user.gstin != getBill.userGSTIN)
-    console.log(getBill)
+    if (req.user.gstin != getBill.userGSTIN)
+        console.log(getBill)
     let SGST, CGST, IGST
     // 4. Combine validation with database check for efficiency
     if (billType == 'seller' && getBill?.sellerType == 'cashSale') {

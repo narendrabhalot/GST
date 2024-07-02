@@ -15,7 +15,7 @@ const allowedRoles = {
     'plan-id': ['user'],
     'myPlan': ['user'],
     'deletePlan': ['user'],
-    'billHistory': ['user'],
+    'billHistory': ['user', 'admin'],
     'imageHistory': ['user'],
     'updateBillHistory': ['user'],
     'filling': ['user'],

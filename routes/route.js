@@ -45,7 +45,6 @@ router.get('/plan-id/:id', authentication, getPlanById)  ///////////////******* 
 router.get('/myPlan/:gstin', authentication, getMyPlan)
 
 // for history api
-router.get('/billHistory', authentication, getBillHistoryByUserType)
 router.get('/imageHistory/:gstin/:userType', authentication, getImageHistoryByUserType)
 // router.put('/bill-History/:billId/:billType', updateBillHistory)
 router.put('/updateBillHistory/:billId/:billType', authentication, updateBillHistory) ///////********* */
@@ -67,6 +66,7 @@ router.post('/admin', creatAdmin)
 router.post('/adminLogIn', adminLogin)
 router.post('/upload-b2bexcel/:gstin', authentication, excelUpload, uploadB2BExcelFile)
 router.post('/upload-b2baexcel', authentication, excelUpload, uploadB2BAExcelFile)
+router.get('/billHistory', authentication, getBillHistoryByUserType)
 router.post('/excel-bills/:gstin/:billType', authentication, excelUpload, uploadExcelFile)    //// uplod of user bill which is upload by user 
 router.get('/getexcel', authentication, getExcelFileFromUpload)
 // for  reconciliation api 
