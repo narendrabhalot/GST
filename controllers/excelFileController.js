@@ -168,6 +168,18 @@ async function uploadExcelFile(req, res) {
         res.status(500).json({ errors: 'Internal server error', error: error });
     }
 }
+async function uploadExcelFileByUser(req, res) {
+    try {
+
+        if (!req.file) {
+            return res.status(400).send({ error: 'No excel file uploaded' });
+        }
+        return res.status(200).send({ status: true, msg: "Excel uploaded successfully" })
+    } catch (error) {
+        console.error('Error processing and saving data:', error);
+        res.status(500).json({ errors: 'Internal server error', error: error });
+    }
+}
 async function getExcelFileFromUpload(req, res) {
     let { userGSTIN, month, year } = req.query;
     console.log(userGSTIN, month, year)
@@ -209,7 +221,7 @@ async function getExcelFileFromUpload(req, res) {
         return res.status(500).json({ error: 'Internal server error', error: err.message }); // Generic error for security
     }
 }
-module.exports = { uploadExcelFile, getExcelFileFromUpload };
+module.exports = { uploadExcelFile, getExcelFileFromUpload,uploadExcelFileByUser };
 
 
 
