@@ -9,7 +9,7 @@ const { uploadB2BExcelFile } = require('../controllers/b2bPurchaserController')
 const { uploadB2BAExcelFile } = require('../controllers/b2baPurchaserController')
 const { authentication } = require('../middleware/auth')
 const { createReconciliation, getReconciliationByGSTIN } = require('../controllers/reconciliationController')
-const { uploadExcelFile,uploadExcelFileByUser, getExcelFileFromUpload } = require('../controllers/excelFileController')
+const { uploadExcelFile, uploadExcelFileByUser, getExcelFileFromUpload } = require('../controllers/excelFileController')
 const { excelUpload, imageUpload } = require('../middleware/uplodImageAndExcelMiddleware')
 const { createLoan, getLoans } = require('../controllers/loanController')
 const { createPlan, createSubPlan, deletePlan, updateSubPlan, getPlan, getMyPlan, getPlanById, getPlanWithSubPlan, deletedPlan } = require('../controllers/planController')
@@ -33,7 +33,7 @@ router.get('/imageDate', authentication, getImageByDateRange)
 
 // upload excel user route 
 
-router.post('/uploadexcel/:billType/:gstin', authentication, excelUpload,uploadExcelFileByUser)
+router.post('/uploadexcel/:billType/:gstin', authentication, excelUpload, uploadExcelFileByUser)
 // for loan route
 router.post('/loan', authentication, createLoan)
 // for reconciliation 
